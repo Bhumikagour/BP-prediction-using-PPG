@@ -1,0 +1,8 @@
+# Never commit runtime state or secrets.
+secret.key
+pulseiq.db
+vault_files/
+__pycache__/
+*.pyc
+.env
+.DS_Store

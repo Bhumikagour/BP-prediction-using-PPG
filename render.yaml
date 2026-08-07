@@ -1,0 +1,20 @@
+# Render Blueprint. With this file in the repo root, Render can create the
+# service from the repository without any manual dashboard configuration.
+services:
+  - type: web
+    runtime: docker
+    name: pulseiq
+    plan: free
+    dockerfilePath: ./Dockerfile
+    # Returns immediately even while the held-out metrics are still warming up,
+    # so Render never marks a healthy service as failed during the warm-up.
+    healthCheckPath: /api/health
+    envVars:
+      # Generated once by Render and kept across deploys, so sessions survive
+      # a redeploy. Never appears in the repository.
+      - key: PULSEIQ_JWT_SECRET
+        generateValue: true
+      # Paste your Groq key when prompted. Leave it blank and the AI assistant
+      # simply reports that it needs a key; everything else works.
+      - key: GROQ_API_KEY
+        sync: false

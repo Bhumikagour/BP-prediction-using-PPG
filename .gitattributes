@@ -1,0 +1,7 @@
+# Intentionally empty of LFS rules.
+#
+# An earlier version of this bundle shipped an 11.5 MB model checkpoint that
+# would have required Git LFS. The API never loads it -- the multimodal figures
+# come from the project's evaluation report rather than live inference -- so
+# prepare.py no longer copies it, and every remaining file is comfortably under
+# the limits. No LFS setup is needed.

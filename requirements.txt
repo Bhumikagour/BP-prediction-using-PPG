@@ -1,0 +1,21 @@
+# Pinned so a rebuild months from now produces the same container.
+#
+# Two of these pins are load-bearing, not arbitrary:
+#   scikit-learn==1.9.0 -- the .joblib models were pickled by 1.9.0. A different
+#     version unpickles with an InconsistentVersionWarning and is documented as
+#     possibly producing invalid results.
+#   numpy>=2 -- feature_engineering.py calls np.trapezoid, which does not exist
+#     before numpy 2.0. On numpy 1.x every prediction raises AttributeError.
+fastapi==0.141.1
+uvicorn[standard]==0.52.1
+numpy==2.5.1
+scipy==1.18.0
+scikit-learn==1.9.0
+joblib==1.5.3
+torch==2.13.0
+shap==0.52.0
+captum==0.9.0
+requests==2.34.2
+pyjwt==2.13.0
+passlib==1.7.4
+python-multipart==0.0.32
