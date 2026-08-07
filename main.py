@@ -1059,7 +1059,7 @@ def prediction_reliability(classical_pred: dict, dl_pred: dict) -> dict:
             "pctWithin5": bhs.get("pct_le_5mmHg"),
             "pctWithin10": bhs.get("pct_le_10mmHg"),
             "pctWithin15": bhs.get("pct_le_15mmHg"),
-            "bhsGrade": bhs.get("grade"),
+            "bhsGrade": bhs.get("bhs_grade"),
             "aamiPass": aami.get("aami_compliant"),
             # How far the two independent models land apart on this window.
             "modelGapMmHg": (abs(c - d) if (c is not None and d is not None) else None),
@@ -1663,9 +1663,13 @@ def chat_health():
             "ollamaReachable": False,
             "configuredModel": OLLAMA_MODEL,
             "error": str(e),
-            "hint": "No GROQ_API_KEY is set, so PulseIQ looked for a local "
-                    "Ollama server. Install it from https://ollama.com/download, "
-                    f"run 'ollama pull {OLLAMA_MODEL}', and make sure it is running.",
+            "hint": ("The AI assistant is not configured on this server -- set a "
+                     "GROQ_API_KEY (free from console.groq.com). Everything else "
+                     "works without it.")
+                    if os.environ.get("PORT") or os.environ.get("RENDER") else
+                    ("No GROQ_API_KEY is set, so PulseIQ looked for a local Ollama "
+                     "server. Install it from https://ollama.com/download, run "
+                     f"'ollama pull {OLLAMA_MODEL}', and make sure it is running."),
         }
 
 
@@ -1741,12 +1745,20 @@ def chat(req: ChatRequest):
             raise ValueError("empty response from local model")
         return {"reply": reply, "model": OLLAMA_MODEL, "source": "local-llm"}
     except requests.exceptions.ConnectionError:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Local AI (Ollama) is not reachable at {OLLAMA_BASE_URL}. "
-                   f"Install it from https://ollama.com/download, run "
-                   f"'ollama pull {OLLAMA_MODEL}', and make sure it's running.",
-        )
+        # Two very different situations reach this line, so say which one it is
+        # rather than telling a visitor on a hosted server to install Ollama.
+        hosted = bool(os.environ.get("PORT") or os.environ.get("RENDER"))
+        if hosted:
+            detail = ("The AI assistant is not configured on this server. It needs a "
+                      "GROQ_API_KEY environment variable (a free key from "
+                      "console.groq.com). Everything else in PulseIQ works without it, "
+                      "including messaging your doctor.")
+        else:
+            detail = (f"Local AI (Ollama) is not reachable at {OLLAMA_BASE_URL}. "
+                      f"Install it from https://ollama.com/download, run "
+                      f"'ollama pull {OLLAMA_MODEL}', and make sure it's running. "
+                      f"Alternatively set GROQ_API_KEY to use the free hosted model.")
+        raise HTTPException(status_code=503, detail=detail)
     except requests.exceptions.Timeout:
         raise HTTPException(
             status_code=504,

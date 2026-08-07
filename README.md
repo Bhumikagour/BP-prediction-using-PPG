@@ -43,14 +43,14 @@ Check `git status` first and confirm `pulseiq.db`, `secret.key` and
 `vault_files/` do **not** appear. `.gitignore` excludes them; that database
 holds password hashes and the key signs your login tokens.
 
-**3. Deploy on Render.** Sign in at render.com, choose **New → Blueprint**, and
-point it at the repository. `render.yaml` in this folder describes the service,
-so there is nothing to configure by hand: Docker runtime, free plan, health
-check, and a generated JWT secret.
-
-It will prompt for `GROQ_API_KEY`. Paste the key from
-console.groq.com/keys, or leave it blank — the AI assistant then reports that
-it needs a key and everything else still works.
+**3. Deploy on Render.** Sign in at render.com. If **New → Blueprint** is
+available, point it at the repository and `render.yaml` configures everything.
+Otherwise use **New → Web Service**, pick the repo, and set: runtime **Docker**,
+branch **main**, instance type **Free**, and — under Advanced — health check path
+`/api/health`. Add two environment variables: `PULSEIQ_JWT_SECRET` (any long
+random string) and, optionally, `GROQ_API_KEY` from console.groq.com/keys.
+Without the Groq key the AI assistant reports that it is not configured on this
+server; everything else works.
 
 The first build takes 10–15 minutes, most of it installing torch.
 
@@ -72,14 +72,22 @@ one is still being computed.
 
 ## Free-tier realities
 
-**512 MB of RAM is the real constraint.** Torch alone accounts for roughly half
-of it. The build is trimmed for this: the 11.5 MB multimodal checkpoint is not
-shipped (the API never loads it), pandas was removed in favour of numpy, SHAP is
-imported only when an explanation is requested, and torch is pinned to a single
-thread. It should fit. If the logs show the service killed with **exit status
-137**, that is the kernel out-of-memory killer and the honest answer is that
-this instance is too small — Render's 1 GB Starter plan or Google Cloud Run's
-free tier at 2 GB would both hold it.
+**512 MB of RAM is the real constraint, and it is close.** Measured on a real
+boot of this exact code: the base stack (numpy, scipy, scikit-learn, FastAPI)
+sits at 158 MB, CPU-only torch adds roughly 180 MB, and SHAP — which loads only
+when someone opens the Explainability page — adds another 114 MB on top. That
+lands around 450 MB at peak, inside 512 MB but without much room.
+
+The build is trimmed for exactly this: the 11.5 MB multimodal checkpoint is not
+shipped (the API never loads it), pandas was replaced with numpy, SHAP is
+imported only on demand rather than at startup, and torch runs single-threaded.
+
+If the logs show the service killed with **exit status 137**, that is the kernel
+out-of-memory killer. Check first that the torch install came from the CPU index
+— if that step failed and pip fell back to PyPI, you get the CUDA build, which
+alone uses 455 MB and cannot possibly fit. If it is genuinely just too tight,
+Render's 1 GB Starter plan or Google Cloud Run's free tier at 2 GB will both
+hold it comfortably.
 
 **It sleeps.** Render suspends a free service after 15 minutes without traffic,
 and waking takes about a minute — plus the warm-up again, since the container
@@ -108,17 +116,23 @@ logged, or returned to the browser. Do not put either key in a file here.
 
 ## Why these versions are pinned
 
-Two pins are load-bearing rather than cautious:
+Three pins are load-bearing rather than cautious:
 
 `scikit-learn==1.9.0` — your `.joblib` models were pickled by 1.9.0. Loading
 them under a different version raises `InconsistentVersionWarning`, which
 scikit-learn documents as possibly producing invalid results.
 
-`numpy==2.5.1` — `feature_engineering.py` calls `np.trapezoid`, which does not
-exist before numpy 2.0. On numpy 1.x every prediction raises `AttributeError`.
+`numpy==2.4.6` — squeezed from both sides. `feature_engineering.py` calls
+`np.trapezoid`, which does not exist before numpy 2.0, so 1.x makes every
+prediction raise `AttributeError`. But shap depends on numba, and the newest
+numba supports numpy only up to 2.4 — ask for 2.5 and pip backtracks all the way
+to a 2023 numba source tarball that refuses to build on Python 3.12, which is
+exactly how the first deploy failed. 2.4.6 satisfies both.
 
-The container uses Python 3.12 because those two, and scipy, publish wheels for
-3.12 upward.
+`numba` and `llvmlite` are pinned to the versions that resolution settles on, so
+the resolver cannot wander into that hole again.
+
+The container uses Python 3.12 because these publish wheels for 3.12 upward.
 
 ## Running the container locally first
 
