@@ -299,13 +299,16 @@ button{font-family:inherit;cursor:pointer;}
   .cal-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:9px;flex:1;}
   .cal-day{background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;
     padding:9px 0;text-align:center;cursor:pointer;transition:all .12s;position:relative;}
-  .cal-day:hover:not(.future){border-color:rgba(34,229,240,0.45);}
+  .cal-day:hover{border-color:rgba(34,229,240,0.45);}
   .cal-day .dw{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-600);font-weight:800;}
   .cal-day .dn{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:800;color:var(--ink-200);margin-top:2px;}
   .cal-day.on{background:rgba(34,229,240,0.12);border-color:rgba(34,229,240,0.55);}
   .cal-day.on .dn{color:var(--cyan-bright);}
   .cal-day.today .dw{color:var(--cyan-bright);}
-  .cal-day.future{opacity:.32;cursor:not-allowed;}
+  /* Future days are browsable now, so they read as "ahead" rather than
+     disabled: dimmed, but clearly still a target. */
+  .cal-day.future{opacity:.55;}
+  .cal-day.future.on{opacity:1;}
   .cal-day .pip{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);display:flex;gap:3px;}
   .cal-day .pip i{width:4px;height:4px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);}
   .cal-day .pip i.miss{background:var(--ink-600);box-shadow:none;}
@@ -332,6 +335,20 @@ button{font-family:inherit;cursor:pointer;}
     align-items:center;justify-content:center;font-size:10px;color:transparent;}
   .slot.done{background:rgba(60,230,133,0.1);border-color:rgba(60,230,133,0.4);color:var(--green);}
   .slot.done .tickbox{background:var(--green);border-color:var(--green);color:#04070b;}
+  /* Chrome draws its own clock glyph inside <input type="time">, in a near-black
+     grey that all but disappears on this background. Supplying a background
+     image replaces that glyph, so the picker is visible and matches the theme. */
+  input[type="time"]::-webkit-calendar-picker-indicator{
+    background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ff5c72%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3Cpolyline%20points%3D%2212%207%2012%2012%2015.5%2014%22%2F%3E%3C%2Fsvg%3E");
+    background-size:15px 15px;background-repeat:no-repeat;background-position:center;
+    width:16px;height:16px;opacity:1;cursor:pointer;padding:0;margin-left:4px;}
+  input[type="time"]::-webkit-calendar-picker-indicator:hover{filter:brightness(1.25);}
+  /* A dose that has not come round yet: shown, but not tickable. */
+  .slot.pending{opacity:.6;cursor:default;}
+  .slot.pending:hover{border-color:var(--glass-border-2);}
+  /* A past slot that was never logged. */
+  .slot.missed{border-color:rgba(255,92,114,0.35);color:var(--red,#ff5c72);}
+  .slot.missed .tickbox{border-color:rgba(255,92,114,0.5);}
 
   .adh-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;}
   .adh-wrap .gauge{width:140px;height:140px;margin-bottom:8px;}
@@ -758,16 +775,15 @@ button{font-family:inherit;cursor:pointer;}
               '<div class="dw">'+DAYS_SHORT[i]+'</div><div class="dn">'+d.getDate()+'</div>'+pips+'</div>';
     }
     strip.innerHTML = html;
+    // Every day in the strip is selectable, including future ones — a future
+    // day shows what is scheduled ahead, it just can't be logged.
     strip.querySelectorAll('.cal-day').forEach(function(el){
-      if(el.classList.contains('future')) return;
       el.addEventListener('click', function(){
         SELECTED = this.getAttribute('data-day');
         load();
       });
     });
-    // Can't page into a week that hasn't happened yet.
-    var nextStart = new Date(WEEK_START); nextStart.setDate(nextStart.getDate()+7);
-    document.getElementById('calNext').disabled = iso(nextStart) > TODAY_ISO;
+    document.getElementById('calNext').disabled = false;
   }
 
   document.getElementById('calPrev').onclick = function(){
@@ -779,14 +795,30 @@ button{font-family:inherit;cursor:pointer;}
 
   function renderMeds(d){
     var el = document.getElementById('medList');
-    var isToday = d.selectedDay === d.today;
+    var isToday  = d.selectedDay === d.today;
+    var isFuture = d.selectedDay > d.today;
+    var isPast   = d.selectedDay < d.today;
     var sd = fromIso(d.selectedDay);
-    document.getElementById('dayHeading').textContent = isToday ? "Today's Doses" : 'Doses';
+    document.getElementById('dayHeading').textContent =
+      isToday ? "Today's Doses" : (isFuture ? 'Scheduled Doses' : 'Doses');
     var badge = document.getElementById('dayBadge');
     badge.style.display = isToday ? 'inline-block' : 'none';
     document.getElementById('todayDate').textContent =
       sd.toLocaleDateString([], {weekday:'long', day:'numeric', month:'long', year:'numeric'}) +
-      (isToday ? ' · tap a time to mark it taken' : ' · editing a past day');
+      (isToday  ? ' · tap a time to mark it taken'
+       : isFuture ? ' · upcoming — not due yet'
+       : ' · past day — tap a time to log it late');
+
+    // A reminder can only be created for today onwards, so the add form is
+    // hidden while looking backwards.
+    var addBtn = document.getElementById('btnAdd');
+    if(addBtn){
+      addBtn.style.display = isPast ? 'none' : '';
+      if(isPast){
+        var form = document.getElementById('addForm');
+        if(form) form.classList.remove('on');
+      }
+    }
 
     if(!d.medicines.length){
       el.innerHTML = '<div class="empty"><div class="ic">💊</div>No medicines added yet.<br>' +
@@ -795,28 +827,42 @@ button{font-family:inherit;cursor:pointer;}
     }
     var scheduled = d.medicines.filter(function(m){ return m.scheduledOnDay; });
     if(!scheduled.length){
-      el.innerHTML = '<div class="empty"><div class="ic">📅</div>None of your medicines existed on this date.<br>' +
-                     'Pick a more recent day.</div>';
+      // Honest reason rather than a dead end: these medicines were added after
+      // this date, so there is genuinely no dose history to show for it.
+      var added = d.medicines.map(function(m){ return m.createdAt; })
+                             .filter(function(x){ return x != null; }).sort();
+      var since = added.length ? new Date(added[0]*1000)
+                    .toLocaleDateString([], {day:'numeric', month:'long', year:'numeric'}) : null;
+      el.innerHTML = '<div class="empty"><div class="ic">📅</div>' +
+                     'No doses were scheduled on this date.<br>' +
+                     (since ? 'Your earliest reminder starts ' + esc(since) + '.'
+                            : 'Your reminders start after this date.') + '</div>';
       return;
     }
     el.innerHTML = scheduled.map(function(m){
       var slots = m.times.map(function(t){
         var done = m.takenOnDay.indexOf(t) > -1;
-        return '<div class="slot'+(done?' done':'')+'" data-med="'+m.id+'" data-slot="'+t+'" data-done="'+(done?1:0)+'">' +
-               '<span class="tickbox">✓</span>'+pretty(t)+'</div>';
+        // Future doses are shown but not tickable; past ones that were never
+        // logged are marked missed rather than left looking merely untouched.
+        var cls = done ? ' done' : (isFuture ? ' pending' : (isPast ? ' missed' : ''));
+        var mark = done ? '✓' : (isFuture ? '' : (isPast ? '✕' : ''));
+        return '<div class="slot'+cls+'" data-med="'+m.id+'" data-slot="'+t+'" data-done="'+(done?1:0)+'">' +
+               '<span class="tickbox">'+mark+'</span>'+pretty(t)+'</div>';
       }).join('');
       return '<div class="med-item">' +
-        '<button class="med-del" data-del="'+m.id+'" title="Remove">✕</button>' +
+        (isPast ? '' : '<button class="med-del" data-del="'+m.id+'" title="Remove">✕</button>') +
         '<div class="row1"><span class="nm">'+esc(m.name)+'</span><span class="ds">'+esc(m.dosage)+'</span></div>' +
         (m.notes ? '<div class="nt">'+esc(m.notes)+'</div>' : '') +
         '<div class="slots">'+slots+'</div></div>';
     }).join('');
 
-    el.querySelectorAll('.slot').forEach(function(s){
-      s.addEventListener('click', function(){
-        toggleDose(this.getAttribute('data-med'), this.getAttribute('data-slot'), this.getAttribute('data-done') !== '1');
+    if(!isFuture){
+      el.querySelectorAll('.slot').forEach(function(s){
+        s.addEventListener('click', function(){
+          toggleDose(this.getAttribute('data-med'), this.getAttribute('data-slot'), this.getAttribute('data-done') !== '1');
+        });
       });
-    });
+    }
     el.querySelectorAll('[data-del]').forEach(function(b){
       b.addEventListener('click', function(){ removeMed(this.getAttribute('data-del')); });
     });

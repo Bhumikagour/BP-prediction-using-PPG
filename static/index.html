@@ -317,10 +317,40 @@ button{font-family:inherit;cursor:pointer;}
   .phone-hi{font-size:10px;color:var(--ink-500);text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:6px;}
   .phone-bp{font-family:'JetBrains Mono',monospace;font-weight:800;color:#fff;font-size:36px;display:flex;align-items:baseline;gap:8px;}
   .phone-bp small{font-size:12px;color:var(--ink-500);font-weight:600;}
-  .phone-finger{position:relative;height:150px;display:flex;align-items:center;justify-content:center;margin:14px 0;}
-  .finger-ring{position:absolute;width:120px;height:120px;border-radius:50%;border:2px solid rgba(34,229,240,0.5);box-shadow:0 0 40px rgba(34,229,240,0.5);animation:pulse-ring 1.8s ease-in-out infinite;}
-  @keyframes pulse-ring{0%{transform:scale(0.85);opacity:1;}70%{transform:scale(1.25);opacity:0;}100%{opacity:0;}}
-  .finger-core{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle,var(--cyan-bright),var(--cyan-dim));box-shadow:0 0 40px var(--cyan-glow);display:flex;align-items:center;justify-content:center;font-size:24px;z-index:2;}
+  /* Live trace panel. This replaced a glowing circle with a fingertip glyph:
+     it read as a tap target, but nothing on a marketing page is tappable, so it
+     was promising an interaction that did not exist. A moving readout carries
+     the same "this is alive" signal without pretending to be a button. */
+  .phone-trace{position:relative;height:150px;margin:14px 0;border-radius:14px;overflow:hidden;
+    display:flex;flex-direction:column;padding:28px 12px 10px;
+    background:radial-gradient(120% 140% at 50% 0%,rgba(34,229,240,0.09),rgba(0,0,0,0) 70%);}
+  .phone-trace::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,0.05) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(255,255,255,0.05) 1px,transparent 1px);
+    background-size:100% 25px,30px 100%;}
+  /* The waveform sits in the flow rather than filling the panel, so it can
+     never run under the quality readout below it. */
+  .phone-trace .vp{position:relative;flex:1 1 auto;min-height:0;margin:0 -12px;overflow:hidden;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%);
+            mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%);}
+  .phone-trace svg{position:absolute;top:0;left:0;height:100%;width:200%;
+    animation:trace-scroll 4.2s linear infinite;will-change:transform;}
+  @keyframes trace-scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+  .phone-trace .wv{filter:drop-shadow(0 0 6px rgba(34,229,240,0.6)) drop-shadow(0 0 16px rgba(34,229,240,0.25));}
+  .trace-tag{position:absolute;top:10px;left:12px;z-index:3;display:flex;align-items:center;gap:6px;
+    font-size:8.5px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-500);}
+  .trace-tag i{width:6px;height:6px;border-radius:50%;background:var(--cyan-bright);
+    box-shadow:0 0 8px var(--cyan-bright);animation:blip 1.4s ease-in-out infinite;font-style:normal;}
+  @keyframes blip{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.35;transform:scale(0.75);}}
+  .trace-q{position:relative;z-index:3;flex:0 0 auto;padding-top:8px;}
+  .trace-q .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+    font-size:8px;color:var(--ink-500);white-space:nowrap;
+    text-transform:uppercase;letter-spacing:0.06em;font-weight:700;margin-bottom:4px;}
+  .trace-q .row b{color:var(--cyan-bright);font-family:'JetBrains Mono',monospace;font-size:9.5px;
+    letter-spacing:0;flex:0 0 auto;}
+  .trace-q .bar{height:3px;border-radius:99px;background:rgba(255,255,255,0.09);overflow:hidden;}
+  .trace-q .bar i{display:block;height:100%;width:99%;border-radius:99px;
+    background:linear-gradient(90deg,var(--cyan-dim),var(--cyan-bright));}
   .phone-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .phone-tile{background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;padding:10px 12px;}
   .phone-tile .l{font-size:8.5px;color:var(--ink-500);text-transform:uppercase;letter-spacing:0.06em;font-weight:700;}
@@ -379,13 +409,28 @@ button{font-family:inherit;cursor:pointer;}
       <div class="phone-screen">
         <div class="phone-hi">Live BP · PulseIQ</div>
         <div class="phone-bp">128<small>/</small>82<small>mmHg</small></div>
-        <div class="phone-finger">
-          <div class="finger-ring"></div>
-          <div class="finger-core">👆</div>
+        <div class="phone-trace">
+          <div class="trace-tag"><i></i>Sensing · 125 Hz</div>
+          <div class="vp">
+            <svg viewBox="0 0 1000 120" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="phWv" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#22e5f0"/><stop offset="50%" stop-color="#7bf5fb"/>
+                  <stop offset="100%" stop-color="#22e5f0"/>
+                </linearGradient>
+              </defs>
+              <path class="wv" fill="none" stroke="url(#phWv)" stroke-width="2.6"
+                    stroke-linecap="round" stroke-linejoin="round" d="M0.0,103.8L3.0,100.4L5.9,90.2L8.9,68.7L11.9,38.9L14.8,16.4L17.8,17.8L20.8,41.5L23.7,69.7L26.7,87.6L29.7,93.1L32.6,90.7L35.6,84.6L38.6,77.8L41.5,72.5L44.5,70.7L47.5,73.1L50.4,78.8L53.4,86.0L56.4,92.8L59.3,97.9L62.3,101.3L65.3,103.2L68.2,104.2L71.2,104.7L74.2,105.0L77.2,105.3L80.1,105.5L83.1,105.6L86.1,105.8L89.0,105.9L92.0,106.0L95.0,106.0L97.9,106.0L100.9,105.1L103.9,101.9L106.8,91.9L109.8,70.5L112.8,40.8L115.7,18.3L118.7,19.6L121.7,43.2L124.6,71.3L127.6,89.1L130.6,94.4L133.5,91.7L136.5,85.4L139.5,78.3L142.4,72.7L145.4,70.5L148.4,72.6L151.3,78.0L154.3,84.9L157.3,91.3L160.2,96.2L163.2,99.3L166.2,100.9L169.1,101.7L172.1,102.1L175.1,102.3L178.0,102.5L181.0,102.6L184.0,102.8L186.9,103.1L189.9,103.3L192.9,103.5L195.8,103.8L198.8,104.0L201.8,103.4L204.7,100.4L207.7,90.7L210.7,69.7L213.6,40.3L216.6,18.2L219.6,19.8L222.6,43.7L225.5,72.1L228.5,90.1L231.5,95.7L234.4,93.2L237.4,87.1L240.4,80.0L243.3,74.5L246.3,72.4L249.3,74.4L252.2,79.8L255.2,86.5L258.2,92.8L261.1,97.5L264.1,100.3L267.1,101.7L270.0,102.2L273.0,102.3L276.0,102.2L278.9,102.0L281.9,101.8L284.9,101.7L287.8,101.6L290.8,101.5L293.8,101.5L296.7,101.5L299.7,101.5L302.7,100.8L305.6,97.7L308.6,87.9L311.6,66.9L314.5,37.5L317.5,15.5L320.5,17.2L323.4,41.3L326.4,69.9L329.4,88.1L332.3,93.9L335.3,91.8L338.3,85.9L341.2,79.3L344.2,74.1L347.2,72.3L350.1,74.6L353.1,80.3L356.1,87.3L359.1,93.9L362.0,98.8L365.0,101.8L368.0,103.4L370.9,104.0L373.9,104.1L376.9,104.0L379.8,103.8L382.8,103.6L385.8,103.3L388.7,103.1L391.7,102.8L394.7,102.5L397.6,102.3L400.6,102.0L403.6,100.9L406.5,97.5L409.5,87.4L412.5,66.1L415.4,36.4L418.4,14.0L421.4,15.4L424.3,39.3L427.3,67.6L430.3,85.7L433.2,91.3L436.2,89.1L439.2,83.1L442.1,76.4L445.1,71.3L448.1,69.6L451.0,72.0L454.0,77.8L457.0,85.1L459.9,91.9L462.9,97.1L465.9,100.4L468.8,102.3L471.8,103.2L474.8,103.7L477.7,103.9L480.7,104.0L483.7,104.1L486.6,104.2L489.6,104.2L492.6,104.1L495.5,104.1L498.5,104.0L501.5,103.8L504.5,100.4L507.4,90.2L510.4,68.7L513.4,38.9L516.3,16.4L519.3,17.8L522.3,41.5L525.2,69.7L528.2,87.6L531.2,93.1L534.1,90.7L537.1,84.6L540.1,77.8L543.0,72.5L546.0,70.7L549.0,73.1L551.9,78.8L554.9,86.0L557.9,92.8L560.8,97.9L563.8,101.3L566.8,103.2L569.7,104.2L572.7,104.7L575.7,105.0L578.6,105.3L581.6,105.5L584.6,105.6L587.5,105.8L590.5,105.9L593.5,106.0L596.4,106.0L599.4,106.0L602.4,105.1L605.3,101.9L608.3,91.9L611.3,70.5L614.2,40.8L617.2,18.3L620.2,19.6L623.1,43.2L626.1,71.3L629.1,89.1L632.0,94.4L635.0,91.7L638.0,85.4L640.9,78.3L643.9,72.7L646.9,70.5L649.9,72.6L652.8,78.0L655.8,84.9L658.8,91.3L661.7,96.2L664.7,99.3L667.7,100.9L670.6,101.7L673.6,102.1L676.6,102.3L679.5,102.5L682.5,102.6L685.5,102.8L688.4,103.1L691.4,103.3L694.4,103.5L697.3,103.8L700.3,104.0L703.3,103.4L706.2,100.4L709.2,90.7L712.2,69.7L715.1,40.3L718.1,18.2L721.1,19.8L724.0,43.7L727.0,72.1L730.0,90.1L732.9,95.7L735.9,93.2L738.9,87.1L741.8,80.0L744.8,74.5L747.8,72.4L750.7,74.4L753.7,79.8L756.7,86.5L759.6,92.8L762.6,97.5L765.6,100.3L768.5,101.7L771.5,102.2L774.5,102.3L777.4,102.2L780.4,102.0L783.4,101.8L786.4,101.7L789.3,101.6L792.3,101.5L795.3,101.5L798.2,101.5L801.2,101.5L804.2,100.8L807.1,97.7L810.1,87.9L813.1,66.9L816.0,37.5L819.0,15.5L822.0,17.2L824.9,41.3L827.9,69.9L830.9,88.1L833.8,93.9L836.8,91.8L839.8,85.9L842.7,79.3L845.7,74.1L848.7,72.3L851.6,74.6L854.6,80.3L857.6,87.3L860.5,93.9L863.5,98.8L866.5,101.8L869.4,103.4L872.4,104.0L875.4,104.1L878.3,104.0L881.3,103.8L884.3,103.6L887.2,103.3L890.2,103.1L893.2,102.8L896.1,102.5L899.1,102.3L902.1,102.0L905.0,100.9L908.0,97.5L911.0,87.4L913.9,66.1L916.9,36.4L919.9,14.0L922.8,15.4L925.8,39.3L928.8,67.6L931.8,85.7L934.7,91.3L937.7,89.1L940.7,83.1L943.6,76.4L946.6,71.3L949.6,69.6L952.5,72.0L955.5,77.8L958.5,85.1L961.4,91.9L964.4,97.1L967.4,100.4L970.3,102.3L973.3,103.2L976.3,103.7L979.2,103.9L982.2,104.0L985.2,104.1L988.1,104.2L991.1,104.2L994.1,104.1L997.0,104.1L1000.0,104.0"/>
+            </svg>
+          </div>
+          <div class="trace-q">
+            <div class="row"><span>Signal quality</span><b>99%</b></div>
+            <div class="bar"><i></i></div>
+          </div>
         </div>
         <div class="phone-tiles">
           <div class="phone-tile hr"><div class="l">Heart rate</div><div class="v">76 bpm</div></div>
-          <div class="phone-tile spo2"><div class="l">SpO₂</div><div class="v">97%</div></div>
+          <div class="phone-tile spo2"><div class="l">Window</div><div class="v">12 s</div></div>
         </div>
       </div>
     </div>

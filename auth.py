@@ -96,6 +96,26 @@ def init_db():
     if "read_at" not in cols:
         conn.execute("ALTER TABLE messages ADD COLUMN read_at REAL")
 
+    # Editing and replying. All three are nullable so every existing row stays
+    # valid: NULL edited_at means "never edited", NULL reply_to means "not a
+    # reply". Deleting for everyone removes the row outright, so there is no
+    # deleted flag here.
+    if "edited_at" not in cols:
+        conn.execute("ALTER TABLE messages ADD COLUMN edited_at REAL")
+    if "reply_to" not in cols:
+        conn.execute("ALTER TABLE messages ADD COLUMN reply_to INTEGER")
+
+    # "Delete for me" is per-viewer, so it cannot live on the message row —
+    # the same message stays visible to the other person.
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS message_hidden (
+            message_id INTEGER NOT NULL,
+            user_id    INTEGER NOT NULL,
+            hidden_at  REAL NOT NULL,
+            PRIMARY KEY (message_id, user_id)
+        )
+    """)
+
     # Which recording in the dataset belongs to this account. NULL means the
     # account has no data yet — the app must say so rather than showing
     # someone else's recording.
@@ -174,7 +194,14 @@ def list_users_by_role(role: str, exclude_id: Optional[int] = None) -> list:
         conn.close()
 
 
-def insert_message(sender_id: int, recipient_id: int, body: str) -> dict:
+# A message can be unsent for everybody only inside this window. After it
+# expires the sender can still hide it from their own view, which is what
+# "delete for me" does.
+DELETE_FOR_EVERYONE_SECONDS = 3600
+
+
+def insert_message(sender_id: int, recipient_id: int, body: str,
+                   reply_to: Optional[int] = None) -> dict:
     body = body.strip()
     if not body:
         raise ValueError("message body must not be empty")
@@ -185,33 +212,127 @@ def insert_message(sender_id: int, recipient_id: int, body: str) -> dict:
         recipient = conn.execute("SELECT id FROM users WHERE id = ?", (recipient_id,)).fetchone()
         if not recipient:
             raise ValueError("recipient does not exist")
+        if reply_to is not None:
+            # You may only quote a message from this same conversation,
+            # otherwise a reply could leak text out of someone else's thread.
+            q = conn.execute(
+                """SELECT id FROM messages WHERE id = ?
+                   AND ((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))""",
+                (reply_to, sender_id, recipient_id, recipient_id, sender_id),
+            ).fetchone()
+            if not q:
+                raise ValueError("you can only reply to a message in this conversation")
         ts = time.time()
         cur = conn.execute(
-            "INSERT INTO messages (sender_id, recipient_id, body, created_at) VALUES (?, ?, ?, ?)",
-            (sender_id, recipient_id, body, ts),
+            "INSERT INTO messages (sender_id, recipient_id, body, created_at, reply_to) VALUES (?, ?, ?, ?, ?)",
+            (sender_id, recipient_id, body, ts, reply_to),
         )
         conn.commit()
         return {"id": cur.lastrowid, "senderId": sender_id, "recipientId": recipient_id,
-                "body": body, "createdAt": ts}
+                "body": body, "createdAt": ts, "replyTo": reply_to}
+    finally:
+        conn.close()
+
+
+def edit_message(message_id: int, user_id: int, body: str) -> dict:
+    """Rewrite one of your own messages. Stamps edited_at so the UI can say so."""
+    body = body.strip()
+    if not body:
+        raise ValueError("message body must not be empty")
+    if len(body) > 4000:
+        raise ValueError("message is too long (max 4000 characters)")
+    conn = get_db()
+    try:
+        row = conn.execute("SELECT sender_id FROM messages WHERE id = ?", (message_id,)).fetchone()
+        if not row:
+            raise LookupError("message not found")
+        if row["sender_id"] != user_id:
+            raise PermissionError("you can only edit your own messages")
+        ts = time.time()
+        conn.execute("UPDATE messages SET body = ?, edited_at = ? WHERE id = ?", (body, ts, message_id))
+        conn.commit()
+        return {"id": message_id, "body": body, "editedAt": ts}
+    finally:
+        conn.close()
+
+
+def delete_message_for_me(message_id: int, user_id: int) -> None:
+    """Hide a message from one person's view only. Either side may do this."""
+    conn = get_db()
+    try:
+        row = conn.execute(
+            "SELECT sender_id, recipient_id FROM messages WHERE id = ?", (message_id,)
+        ).fetchone()
+        if not row:
+            raise LookupError("message not found")
+        if user_id not in (row["sender_id"], row["recipient_id"]):
+            raise PermissionError("that message is not in your conversation")
+        conn.execute(
+            "INSERT OR IGNORE INTO message_hidden (message_id, user_id, hidden_at) VALUES (?, ?, ?)",
+            (message_id, user_id, time.time()),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def delete_message_for_everyone(message_id: int, user_id: int) -> None:
+    """Unsend: the row goes, so it disappears from both sides."""
+    conn = get_db()
+    try:
+        row = conn.execute(
+            "SELECT sender_id, created_at FROM messages WHERE id = ?", (message_id,)
+        ).fetchone()
+        if not row:
+            raise LookupError("message not found")
+        if row["sender_id"] != user_id:
+            raise PermissionError("you can only unsend your own messages")
+        if time.time() - row["created_at"] > DELETE_FOR_EVERYONE_SECONDS:
+            raise TimeoutError("too late to unsend this message")
+        # Replies pointing at it lose their quote rather than dangling.
+        conn.execute("UPDATE messages SET reply_to = NULL WHERE reply_to = ?", (message_id,))
+        conn.execute("DELETE FROM message_hidden WHERE message_id = ?", (message_id,))
+        conn.execute("DELETE FROM messages WHERE id = ?", (message_id,))
+        conn.commit()
     finally:
         conn.close()
 
 
 def get_conversation(user_a: int, user_b: int, limit: int = 200) -> list:
-    """Messages in both directions between two users, oldest first."""
+    """Messages in both directions between two users, oldest first.
+
+    `user_a` is the viewer: anything they deleted for themselves is left out,
+    while the other side still sees it. Each reply carries a small snapshot of
+    the message it answers so the UI can draw the quote without a second pass.
+    """
     conn = get_db()
     try:
         rows = conn.execute(
-            """SELECT id, sender_id, recipient_id, body, created_at
-               FROM messages
-               WHERE (sender_id = ? AND recipient_id = ?)
-                  OR (sender_id = ? AND recipient_id = ?)
-               ORDER BY created_at ASC
+            """SELECT m.id, m.sender_id, m.recipient_id, m.body, m.created_at,
+                      m.edited_at, m.reply_to,
+                      q.body AS q_body, q.sender_id AS q_sender
+               FROM messages m
+               LEFT JOIN messages q ON q.id = m.reply_to
+               WHERE ((m.sender_id = ? AND m.recipient_id = ?)
+                   OR (m.sender_id = ? AND m.recipient_id = ?))
+                 AND m.id NOT IN (SELECT message_id FROM message_hidden WHERE user_id = ?)
+               ORDER BY m.created_at ASC
                LIMIT ?""",
-            (user_a, user_b, user_b, user_a, limit),
+            (user_a, user_b, user_b, user_a, user_a, limit),
         ).fetchall()
-        return [{"id": r["id"], "senderId": r["sender_id"], "recipientId": r["recipient_id"],
-                 "body": r["body"], "createdAt": r["created_at"]} for r in rows]
+        out = []
+        for r in rows:
+            item = {"id": r["id"], "senderId": r["sender_id"], "recipientId": r["recipient_id"],
+                    "body": r["body"], "createdAt": r["created_at"],
+                    "editedAt": r["edited_at"]}
+            if r["reply_to"] and r["q_body"] is not None:
+                item["replyTo"] = {
+                    "id": r["reply_to"],
+                    "senderId": r["q_sender"],
+                    "body": r["q_body"][:160],
+                }
+            out.append(item)
+        return out
     finally:
         conn.close()
 
@@ -260,9 +381,10 @@ def last_message_with(user_id: int, other_id: int) -> Optional[dict]:
     try:
         r = conn.execute(
             """SELECT body, created_at FROM messages
-               WHERE (sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?)
+               WHERE ((sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?))
+                 AND id NOT IN (SELECT message_id FROM message_hidden WHERE user_id = ?)
                ORDER BY created_at DESC LIMIT 1""",
-            (user_id, other_id, other_id, user_id),
+            (user_id, other_id, other_id, user_id, user_id),
         ).fetchone()
         return {"body": r["body"], "createdAt": r["created_at"]} if r else None
     finally:

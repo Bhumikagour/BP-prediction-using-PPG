@@ -409,7 +409,6 @@ button{font-family:inherit;cursor:pointer;}
 
   <div class="icu-foot">
     <span class="foot-item">Model: <b id="fModel">PPGResNetBiLSTM (Live)</b></span>
-    <span class="foot-item">Validity: <b id="fValid">AAMI SP10 · Grade A (SBP)</b></span>
     <div class="grow"></div>
     <button class="icu-btn" id="btnPrev">◀ Prev window</button>
     <button class="icu-btn" id="btnNext">Next window ▶</button>
@@ -711,8 +710,72 @@ button{font-family:inherit;cursor:pointer;}
     var paused = document.getElementById('monitorPanel').classList.toggle('paused');
     this.textContent = paused ? '▶ Resume' : '⏸ Pause';
   };
+  // Export the window that is actually on screen: the real PPG/VPG/APG samples
+  // the backend returned, plus the model's own estimate for that window. The
+  // respiration trace is deliberately excluded — it is a synthetic sine drawn
+  // to keep the four-lane layout, and writing it into a data file would turn a
+  // labelled placeholder into something that looks like a measurement.
+  function csvEscape(v){
+    var s = String(v == null ? '' : v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  function buildCsv(d){
+    var ppg = d.channels.ppg || [], vpg = d.channels.vpg || [], apg = d.channels.apg || [];
+    var n  = Math.min(ppg.length, vpg.length, apg.length);
+    var fs = d.samplingRateHz || 125;
+    var meta = [
+      ['# PulseIQ waveform export'],
+      ['# subject', d.subjectId],
+      ['# window', (winPos + 1) + ' of ' + (d.numWindowsAvailable != null ? d.numWindowsAvailable : '?')],
+      ['# window_index', d.windowIndex],
+      ['# sampling_rate_hz', fs],
+      ['# duration_s', d.durationSec],
+      ['# samples', n],
+      ['# model', 'PPGResNetBiLSTM'],
+      ['# predicted_sbp_mmhg', d.dl && d.dl.SBP != null ? d.dl.SBP.toFixed(2) : ''],
+      ['# predicted_dbp_mmhg', d.dl && d.dl.DBP != null ? d.dl.DBP.toFixed(2) : ''],
+      ['# predicted_map_mmhg', d.dl && d.dl.MAP != null ? d.dl.MAP.toFixed(2) : ''],
+      ['# heart_rate_bpm', d.heartRateBpm != null ? d.heartRateBpm.toFixed(1) : ''],
+      ['# note', 'Model estimate, not a diagnosis. Respiration lane on screen is synthetic and is not exported.']
+    ].map(function(r){ return r.map(csvEscape).join(','); });
+
+    var lines = meta.concat(['sample_index,time_s,ppg,vpg,apg']);
+    for(var i=0;i<n;i++){
+      lines.push(i + ',' + (i/fs).toFixed(6) + ',' + ppg[i] + ',' + vpg[i] + ',' + apg[i]);
+    }
+    return lines.join('\n') + '\n';
+  }
+
+  // Inline feedback on the button — a blocking alert() is what made the old
+  // stub feel like a dead end.
+  function flashBtn(btn, msg){
+    if(btn.dataset.busy) return;
+    var original = btn.textContent;
+    btn.dataset.busy = '1';
+    btn.textContent = msg;
+    setTimeout(function(){ btn.textContent = original; delete btn.dataset.busy; }, 2200);
+  }
+
   document.getElementById('btnDownload').onclick = function(){
-    alert('Demo build — export wires up to a real report generator with the backend.');
+    var btn = this;
+    if(!LAST_WINDOW){
+      flashBtn(btn, 'No window loaded');
+      return;
+    }
+    var d = LAST_WINDOW;
+    var blob = new Blob([buildCsv(d)], {type:'text/csv;charset=utf-8'});
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href = url;
+    a.download = 'pulseiq_' + (d.subjectId || 'subject') + '_window' + d.windowIndex + '_' +
+                 (d.samplingRateHz || 125) + 'Hz.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    // Revoking immediately can cancel the download in some browsers.
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+    flashBtn(btn, '✓ Downloaded');
   };
 
   // ---- Real backend wiring ---------------------------------------------
@@ -815,6 +878,9 @@ button{font-family:inherit;cursor:pointer;}
   }
 
   var WIN_LIST = [], winPos = 0;
+  // Last payload the backend returned, so Download exports exactly what is
+  // drawn rather than re-fetching and risking a different window.
+  var LAST_WINDOW = null;
 
   function loadWaveform(windowIdx){
     var url = PULSEIQ_API + '/api/waveform/' + key + (windowIdx != null ? '?window=' + windowIdx : '');
@@ -822,6 +888,7 @@ button{font-family:inherit;cursor:pointer;}
       .then(function(r){ if(!r.ok) throw new Error('bad'); return r.json(); })
       .then(function(d){
         setBadge(true);
+        LAST_WINDOW = d;
         WIN_LIST = d.windowIndices || [];
         winPos = Math.max(0, WIN_LIST.indexOf(d.windowIndex));
 
@@ -853,6 +920,7 @@ button{font-family:inherit;cursor:pointer;}
       })
       .catch(function(){
         setBadge(false);
+        LAST_WINDOW = null;
         document.getElementById('chanSrc').textContent = 'backend offline — start it with: python -m uvicorn main:app --port 8001';
         drawWave('waveRR', syntheticResp());
       });
@@ -956,16 +1024,6 @@ button{font-family:inherit;cursor:pointer;}
     loadWaveform(WIN_LIST[winPos]);
   };
 
-  fetch(PULSEIQ_API + '/api/model-comparison')
-    .then(function(r){ if(!r.ok) throw new Error('bad'); return r.json(); })
-    .then(function(d){
-      setBadge(true);
-      var dlSbp = d.rows.find(function(r){ return r.source === 'live' && r.model.indexOf('PPGResNetBiLSTM') > -1 && r.target === 'SBP'; });
-      if(dlSbp){
-        document.getElementById('fValid').textContent = dlSbp.aami + ' · Grade ' + dlSbp.bhsGrade + ' (SBP, MAE ' + dlSbp.MAE.toFixed(1) + ' mmHg)';
-      }
-    })
-    .catch(function(){});
 </script>
 </body>
 </html>

@@ -606,8 +606,11 @@ def medicines_list(days: int = 30, day: Optional[str] = None,
         sel_date = datetime.date.fromisoformat(selected)
     except ValueError:
         raise HTTPException(status_code=400, detail="day must be YYYY-MM-DD")
-    if sel_date > datetime.date.today():
-        raise HTTPException(status_code=400, detail="Cannot log doses for a future date")
+    # Future dates are viewable: the calendar shows what is scheduled ahead.
+    # Logging a dose that has not happened yet is still refused, in
+    # /api/medicines/{id}/dose, which is where that rule belongs.
+    if sel_date > datetime.date.today() + datetime.timedelta(days=366):
+        raise HTTPException(status_code=400, detail="day is too far in the future")
 
     conn = auth.get_db()
     try:
@@ -745,6 +748,14 @@ def medicine_dose(med_id: int, req: DoseRequest, current_user: dict = Depends(au
     if req.slot not in slots:
         raise HTTPException(status_code=400, detail=f"'{req.slot}' is not a scheduled time for this medicine")
     day = req.day or _today()
+    try:
+        day_date = datetime.date.fromisoformat(day)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="day must be YYYY-MM-DD")
+    # A dose can be logged late, but never in advance — that would record
+    # something that has not happened.
+    if day_date > datetime.date.today():
+        raise HTTPException(status_code=400, detail="Cannot log a dose for a future date")
 
     conn = auth.get_db()
     try:
@@ -772,6 +783,11 @@ def medicine_dose(med_id: int, req: DoseRequest, current_user: dict = Depends(au
 # ---------------------------------------------------------------------------
 class SendMessageRequest(BaseModel):
     recipientId: int
+    body: str
+    replyTo: Optional[int] = None
+
+
+class EditMessageRequest(BaseModel):
     body: str
 
 
@@ -974,9 +990,46 @@ def send_message(req: SendMessageRequest, current_user: dict = Depends(auth.get_
     if other["role"] == current_user["role"]:
         raise HTTPException(status_code=403, detail="You can only message the other role")
     try:
-        return auth.insert_message(current_user["id"], req.recipientId, req.body)
+        return auth.insert_message(current_user["id"], req.recipientId, req.body, req.replyTo)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.patch("/api/messages/{message_id}")
+def edit_message(message_id: int, req: EditMessageRequest,
+                 current_user: dict = Depends(auth.get_current_user)):
+    """Rewrite your own message. The thread marks it as edited."""
+    try:
+        return auth.edit_message(message_id, current_user["id"], req.body)
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.delete("/api/messages/{message_id}")
+def delete_message(message_id: int, scope: str = "me",
+                   current_user: dict = Depends(auth.get_current_user)):
+    """scope=me hides it from you alone; scope=everyone unsends it for both."""
+    if scope not in ("me", "everyone"):
+        raise HTTPException(status_code=400, detail="scope must be 'me' or 'everyone'")
+    try:
+        if scope == "everyone":
+            auth.delete_message_for_everyone(message_id, current_user["id"])
+        else:
+            auth.delete_message_for_me(message_id, current_user["id"])
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except TimeoutError:
+        raise HTTPException(
+            status_code=403,
+            detail="This message is more than an hour old — you can only delete it for yourself now",
+        )
+    return {"id": message_id, "scope": scope, "deleted": True}
 
 
 # ---------------------------------------------------------------------------

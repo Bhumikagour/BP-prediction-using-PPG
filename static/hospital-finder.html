@@ -320,8 +320,10 @@ button{font-family:inherit;cursor:pointer;}
   .float{position:absolute;z-index:1000;}
   .pill-btn{background:var(--fw-panel);backdrop-filter:blur(10px);border:1px solid var(--fw-border);border-radius:12px;padding:10px 15px;font-size:12.5px;font-weight:700;color:var(--ink-200);display:flex;align-items:center;gap:8px;box-shadow:0 14px 30px -16px rgba(0,0,0,0.7);}
   .mapview-pill{top:16px;left:16px;}
-  .area-pill{top:16px;left:50%;transform:translateX(-50%);cursor:pointer;}
-  .area-pill input{background:transparent;border:none;outline:none;color:#fff;font-family:'Inter';font-size:12.5px;font-weight:700;width:190px;}
+  .area-pill{top:16px;left:50%;transform:translateX(-50%);cursor:default;}
+  .area-pill #locLabel{color:#fff;font-family:'Inter';font-size:12.5px;font-weight:700;
+    max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .area-pill #locLabel.none{color:var(--ink-500);font-weight:600;}
   .zoom-ctl{top:16px;right:16px;display:flex;flex-direction:column;gap:4px;}
   .zoom-ctl button{width:38px;height:38px;background:var(--fw-panel);backdrop-filter:blur(10px);border:1px solid var(--fw-border);border-radius:11px;font-size:17px;font-weight:700;color:var(--ink-200);box-shadow:0 12px 26px -14px rgba(0,0,0,0.7);}
 
@@ -353,9 +355,6 @@ button{font-family:inherit;cursor:pointer;}
     border-radius:8px;padding:6px 0;font-size:10.5px;font-weight:700;text-decoration:none;}
   .nearby-panel h4{margin:0 0 14px;font-size:14px;font-weight:800;color:#fff;display:flex;align-items:center;gap:9px;}
   .nearby-panel h4 .pin{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:13px;}
-  .type-toggle{display:flex;background:rgba(255,255,255,0.04);border-radius:11px;padding:4px;margin-bottom:16px;}
-  .type-toggle div{flex:1;text-align:center;padding:9px 0;border-radius:9px;font-size:12px;font-weight:700;color:var(--ink-400);cursor:pointer;}
-  .type-toggle div.on{background:linear-gradient(90deg,var(--map-doctor),#a78bfa);color:#fff;}
   .np-label{font-size:10px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-500);margin-bottom:8px;}
   .np-select{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--fw-border);border-radius:11px;padding:11px 13px;color:#fff;font-size:12.5px;font-family:'Inter';font-weight:600;margin-bottom:16px;outline:none;}
   /* Native dropdowns inherit the OS list styling, which rendered white-on-white
@@ -458,7 +457,7 @@ button{font-family:inherit;cursor:pointer;}
 
       <button class="float pill-btn mapview-pill" id="btnMapView">📍 <span id="mapViewLbl">Map View</span></button>
 
-      <div class="float pill-btn area-pill">📍 <input id="locInput" value="Bhilai, India" placeholder="Select area…"></div>
+      <div class="float pill-btn area-pill">📍 <span id="locLabel">Bhilai, India</span></div>
 
       <div class="float zoom-ctl">
         <button id="zIn">+</button>
@@ -468,10 +467,6 @@ button{font-family:inherit;cursor:pointer;}
 
       <div class="float nearby-panel">
         <h4><span class="pin">📍</span>Find Nearby</h4>
-        <div class="type-toggle">
-          <div class="on" id="toggleDoctors">Doctors</div>
-          <div id="toggleHospitals">Hospitals</div>
-        </div>
         <div class="np-label">Search Area</div>
         <div class="area-search">
           <input id="areaInput" placeholder="Any city, town or area…" autocomplete="off" value="Bhilai, India">
@@ -481,7 +476,6 @@ button{font-family:inherit;cursor:pointer;}
         <input type="range" id="radiusSlider" min="1" max="20" value="5">
         <button class="find-btn" id="btnFind">Find Nearby</button>
         <button class="clear-btn" id="btnGeo">📍 Use My Location</button>
-        <button class="clear-btn" id="btnFit">⤢ Show All Results</button>
         <button class="clear-btn" id="btnClear">Clear</button>
         <div class="res-status" id="resStatus"></div>
         <div class="res-list" id="resList"></div>
@@ -501,11 +495,6 @@ button{font-family:inherit;cursor:pointer;}
       <div class="rp-row"><span class="k"><span class="rp-dot" style="background:var(--map-hospital);"></span>Hospitals</span><div class="rp-sw on hospital" data-layer="hospital"></div></div>
       <div class="rp-row"><span class="k"><span class="rp-dot" style="background:#4ade80;"></span>Pharmacies</span><div class="rp-sw pharm" data-layer="pharmacy"></div></div>
       <div class="rp-row"><span class="k"><span class="rp-dot" style="background:#ff5c72;"></span>Emergency only</span><div class="rp-sw emg" data-layer="emergency"></div></div>
-
-      <div class="rp-title">Legend</div>
-      <div class="rp-row"><span class="k"><span class="rp-dot" style="background:var(--map-doctor);"></span>Doctor</span></div>
-      <div class="rp-row"><span class="k"><span class="rp-dot" style="background:var(--map-hospital);"></span>Hospital</span></div>
-      <div class="rp-row"><span class="k"><span class="rp-dot" style="background:#4ade80;"></span>Pharmacy</span></div>
 
       <div class="rp-title">Route</div>
       <div class="route-box" id="routeBox">Click any facility, then <b>Route</b> to draw the driving route from your location.</div>
@@ -545,7 +534,8 @@ button{font-family:inherit;cursor:pointer;}
   }
 
   var center = [21.1938, 81.3509]; // Bhilai, India — demo default
-  var radiusKm = 5;
+  var DEFAULT_RADIUS_KM = 5;
+  var radiusKm = DEFAULT_RADIUS_KM;
   var showDoctors = true, showHospitals = true;
 
   var map = L.map('leafletMap', {zoomControl:false}).setView(center, 12);
@@ -842,24 +832,13 @@ button{font-family:inherit;cursor:pointer;}
     document.querySelectorAll('.rp-sw[data-layer="doctor"]').forEach(function(s){ s.classList.toggle('on', showDoctors); });
     document.querySelectorAll('.rp-sw[data-layer="hospital"]').forEach(function(s){ s.classList.toggle('on', showHospitals); });
   }
-  document.getElementById('toggleDoctors').onclick = function(){
-    showDoctors = true; showHospitals = false;
-    this.classList.add('on'); document.getElementById('toggleHospitals').classList.remove('on');
-    syncLayerSwitches(); applyFilters();
-  };
-  document.getElementById('toggleHospitals').onclick = function(){
-    showHospitals = true; showDoctors = false;
-    this.classList.add('on'); document.getElementById('toggleDoctors').classList.remove('on');
-    syncLayerSwitches(); applyFilters();
-  };
-
   document.querySelectorAll('.rp-sw').forEach(function(sw){
     sw.addEventListener('click', function(){
       var key = this.getAttribute('data-layer');
       var willOn = !this.classList.contains('on');
       this.classList.toggle('on', willOn);
-      if (key==='doctor'){ showDoctors = willOn; if(willOn){ document.getElementById('toggleDoctors').classList.add('on'); } applyFilters(); }
-      if (key==='hospital'){ showHospitals = willOn; if(willOn){ document.getElementById('toggleHospitals').classList.add('on'); } applyFilters(); }
+      if (key==='doctor'){ showDoctors = willOn; applyFilters(); }
+      if (key==='hospital'){ showHospitals = willOn; applyFilters(); }
       if (key==='pharmacy'){ showPharmacy = willOn; applyFilters(); }
       if (key==='emergency'){ emergencyOnly = willOn; applyFilters(); }
     });
@@ -870,12 +849,10 @@ button{font-family:inherit;cursor:pointer;}
     map.setView(pt, zoom || 13);
     youMarker.setLatLng(pt);
     if(label){
-      document.getElementById('locInput').value = label;
+      setAreaLabel(label);
       document.getElementById('areaInput').value = label;
     }
     showDoctors = true; showHospitals = true;
-    document.getElementById('toggleDoctors').classList.add('on');
-    document.getElementById('toggleHospitals').classList.add('on');
     document.querySelectorAll('.rp-sw[data-layer="doctor"],.rp-sw[data-layer="hospital"]').forEach(el=>el.classList.add('on'));
     loadEnvironment(pt);        // real temperature / humidity / elevation
     loadNearby(pt);
@@ -922,6 +899,15 @@ button{font-family:inherit;cursor:pointer;}
       });
   }
 
+  // The pill mirrors whatever area is being searched. Empty gets placeholder
+  // styling so it reads as "nothing selected" rather than a blank chip.
+  function setAreaLabel(text){
+    var el = document.getElementById('locLabel');
+    if(!el) return;
+    el.textContent = text || 'Select area…';
+    el.classList.toggle('none', !text);
+  }
+
   var areaInput = document.getElementById('areaInput');
   areaInput.addEventListener('input', function(){
     var q = this.value.trim();
@@ -943,36 +929,20 @@ button{font-family:inherit;cursor:pointer;}
 
   document.getElementById('btnFind').onclick = function(){ loadNearby(center); };
 
-  // Manual "show everything again" — after zooming in, one click brings all
-  // the currently-visible pins back into view.
+  // "Show everything again" — the map's ⤢ control brings every visible pin
+  // back into view after zooming in. The sidebar duplicate was removed.
   function showAll(){
     var visible = Object.keys(MARKERS);
     if(!visible.length){ status('Nothing to show yet — press Find Nearby first.', true); return; }
     fitToResults(RESULTS.filter(function(p){ return MARKERS[p.id]; }));
   }
-  document.getElementById('btnFit').onclick = showAll;
   document.getElementById('zFit').onclick = showAll;
-
-  // The pill at the top of the map searches too.
-  document.getElementById('locInput').addEventListener('keydown', function(e){
-    if(e.key !== 'Enter') return;
-    var q = this.value.trim(); if(!q) return;
-    status('Looking up "' + q + '"…');
-    fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q))
-      .then(function(r){ if(!r.ok) throw new Error('bad'); return r.json(); })
-      .then(function(d){
-        if(!d.length){ status('Could not find "' + q + '". Try a fuller place name.', true); return; }
-        goToPoint([parseFloat(d[0].lat), parseFloat(d[0].lon)], d[0].display_name.split(',').slice(0,2).join(',').trim(), 13);
-      })
-      .catch(function(){ status('Place lookup unavailable. Check your connection.', true); });
-  });
 
   // Turn a GPS fix back into a place name so "Search Area" shows where you
   // actually are instead of a meaningless "My location" placeholder.
   function reverseGeocode(pt){
-    var loc = document.getElementById('locInput');
     var area = document.getElementById('areaInput');
-    loc.value = 'Locating…'; area.value = 'Locating…';
+    setAreaLabel('Locating…'); area.value = 'Locating…';
     fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&lat=' + pt[0] + '&lon=' + pt[1])
       .then(function(r){ if(!r.ok) throw new Error('bad'); return r.json(); })
       .then(function(d){
@@ -982,12 +952,12 @@ button{font-family:inherit;cursor:pointer;}
         var label = [place, region].filter(Boolean).join(', ');
         if(!label && d && d.display_name) label = d.display_name.split(',').slice(0, 2).join(',').trim();
         if(!label) label = pt[0].toFixed(4) + ', ' + pt[1].toFixed(4);
-        loc.value = label; area.value = label;
+        setAreaLabel(label); area.value = label;
       })
       .catch(function(){
         // Nominatim unreachable — show the real coordinates rather than a placeholder.
         var label = pt[0].toFixed(4) + ', ' + pt[1].toFixed(4);
-        loc.value = label; area.value = label;
+        setAreaLabel(label); area.value = label;
       });
   }
 
@@ -1007,13 +977,28 @@ button{font-family:inherit;cursor:pointer;}
 
   document.getElementById('btnClear').onclick = function(){
     RESULTS = [];
+    // MARKERS kept pointing at markers that had just been removed from the
+    // map, so a later "fit to results" tried to frame pins that no longer
+    // existed. Clearing the layers has to clear the index with them.
+    MARKERS = {};
     layerDoctor.clearLayers(); layerHospital.clearLayers(); layerPharmacy.clearLayers();
     PulseRouteClear();
     document.getElementById('resList').innerHTML = '';
     document.getElementById('sumDoctors').textContent = '–';
     document.getElementById('sumHospitals').textContent = '–';
     document.getElementById('sumTotal').textContent = '–';
-    status('Cleared. Press Find Nearby to search again.');
+    // Clear the typed location too — leaving the old area in the box made it
+    // look as though that search was still active.
+    document.getElementById('areaInput').value = '';
+    setAreaLabel('');
+    // Radius is part of the search, so Clear resets it with everything else.
+    radiusKm = DEFAULT_RADIUS_KM;
+    document.getElementById('radiusSlider').value = DEFAULT_RADIUS_KM;
+    document.getElementById('radiusVal').textContent = DEFAULT_RADIUS_KM + ' km';
+    document.getElementById('sumRadius').textContent = DEFAULT_RADIUS_KM + ' km';
+    var sugg = document.getElementById('areaSugg');
+    if(sugg){ sugg.innerHTML = ''; sugg.classList.remove('on'); }
+    status('Cleared. Enter an area or use your location, then press Find Nearby.');
   };
 
   loadEnvironment(center);

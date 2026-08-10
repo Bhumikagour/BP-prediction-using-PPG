@@ -288,7 +288,9 @@ button{font-family:inherit;cursor:pointer;}
 
 </style>
 <style>
-  .dash-grid{display:grid;grid-template-columns:1.3fr 0.9fr;gap:18px;margin-bottom:18px;}
+  .dash-grid{display:grid;grid-template-columns:1.55fr 0.85fr;gap:18px;margin-bottom:18px;
+    align-items:start;}
+  .next-med-card{align-self:start;}
   /* The popover must sit above the content cards, which create their own
      stacking contexts via backdrop-filter. */
   .topbar{position:relative;z-index:200;}
@@ -316,11 +318,6 @@ button{font-family:inherit;cursor:pointer;}
   .np-item.new .t{color:var(--cyan-bright);}
   .np-empty{padding:26px 16px;text-align:center;font-size:11.5px;color:var(--ink-600);line-height:1.6;}
 
-  .rel-rows{width:100%;margin-bottom:16px;}
-  .rel-rows .r{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;
-    color:var(--ink-500);padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
-  .rel-rows .r:last-child{border-bottom:none;}
-  .rel-rows .r b{color:#fff;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;}
 
   .signal-card{position:relative;}
   .signal-card .top{display:flex;justify-content:space-between;align-items:center;}
@@ -348,9 +345,6 @@ button{font-family:inherit;cursor:pointer;}
   .sq-row{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--ink-400);margin-bottom:6px;}
   .sq-row b{color:#fff;}
 
-  .conf-gauge-row{display:flex;flex-direction:column;align-items:center;text-align:center;}
-  .conf-gauge-row .gauge{width:130px;height:130px;margin-bottom:6px;}
-  .conf-gauge-row .lvl{font-size:11px;font-weight:700;color:var(--green);margin-bottom:18px;}
   .next-med{width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--glass-border);border-radius:12px;padding:12px 14px;text-align:left;}
   .next-med .l{font-size:9.5px;color:var(--ink-500);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;margin-bottom:4px;}
   .next-med .n{font-size:13px;font-weight:700;color:#fff;}
@@ -420,34 +414,24 @@ button{font-family:inherit;cursor:pointer;}
           <div class="pbar"><div class="fill" id="sqBar" style="width:0%;"></div></div>
         </div>
 
-        <div class="card glow-purple">
-          <h3>Model Reliability</h3>
-          <div class="card-sub" style="margin:2px 0 0;">Measured on held-out test data</div>
-          <div class="conf-gauge-row">
-            <div class="gauge">
-              <svg viewBox="0 0 120 120">
-                <circle class="track" cx="60" cy="60" r="50"/>
-                <circle class="fill purple" id="relRing" cx="60" cy="60" r="50"
-                        stroke-dasharray="314" stroke-dashoffset="314"/>
-              </svg>
-              <div class="center"><div class="v" id="relPct">—</div><div class="l">within 15 mmHg</div></div>
-            </div>
-            <div class="lvl" id="relGrade" style="color:var(--ink-500);">—</div>
-            <div class="rel-rows" id="relRows"></div>
-            <div class="next-med" id="nextMed">
-              <div class="l">Next Medicine</div>
-              <div class="n" id="nextMedName">—</div>
-              <div class="t" id="nextMedTime"></div>
-            </div>
+        <!-- The Model Reliability card was removed at the user's request. Next
+             Medicine used to live inside it and is a separate working feature,
+             so it survives here as its own card rather than being deleted with
+             the panel that happened to contain it. -->
+        <div class="card next-med-card">
+          <h3>Next Medicine</h3>
+          <div class="card-sub" style="margin:2px 0 0;">From your reminder schedule</div>
+          <div class="next-med" id="nextMed" style="margin-top:14px;">
+            <div class="n" id="nextMedName">—</div>
+            <div class="t" id="nextMedTime"></div>
           </div>
         </div>
       </div>
 
-      <div class="card" id="backendCard" style="margin-bottom:18px;">
-        <h3>Backend Model Prediction <span style="font-weight:400;color:var(--ink-500);font-size:11px;">— real inference on held-out test data</span></h3>
-        <div class="card-sub" id="backendSub">Connecting to PulseIQ backend…</div>
-        <div class="mono-table" id="backendTable" style="margin-top:10px;"></div>
-      </div>
+      <!-- The Backend Model Prediction card was removed at the user's request.
+           This slot stays so an unlinked account still gets its honest empty
+           state, which the card used to host. -->
+      <div id="noDataSlot"></div>
 
       <div class="card">
         <h3>Quick Actions</h3>
@@ -755,11 +739,10 @@ button{font-family:inherit;cursor:pointer;}
     setIdentity(who.guest ? null : who.name, !who.guest);
     if(!who.linked){
       setBadge(true);
-      document.getElementById('backendCard').outerHTML = window.PulseShell.noDataHtml(who.name);
+      document.getElementById('noDataSlot').innerHTML = window.PulseShell.noDataHtml(who.name);
       document.getElementById('tileBP').innerHTML = '—';
       var sw = document.querySelector('.signal-card');
       if(sw) sw.style.display = 'none';
-      document.getElementById('relGrade').textContent = 'Link a Patient ID to see model metrics';
       var tag = document.getElementById('tileBPTag');
       if(tag){ tag.textContent = 'No data'; tag.className = 'tag'; }
       return;
@@ -1018,42 +1001,9 @@ button{font-family:inherit;cursor:pointer;}
       });
   }
 
-  // The model publishes no calibrated per-reading confidence, so this shows
-  // what can actually be measured: how the deep model scored on every held-out
-  // test window, and how far the two independent models land apart here.
-  function renderReliability(d){
-    var r = d.reliability && d.reliability.SBP;
-    if(d.reliability && d.reliability.warmingUp && (!r || r.maeMmHg == null)){
-      document.getElementById('relGrade').textContent = 'Measuring on held-out data…';
-      setTimeout(function(){ loadPrediction(PATIENT_KEY_CURRENT); }, 10000);
-      return;
-    }
-    if(!r){ document.getElementById('relGrade').textContent = 'Metrics unavailable'; return; }
-    var pct = r.pctWithin15;
-    if(pct != null){
-      document.getElementById('relPct').textContent = Math.round(pct) + '%';
-      // 314 = circumference of the r=50 ring.
-      document.getElementById('relRing').setAttribute('stroke-dashoffset', (314 * (1 - pct/100)).toFixed(0));
-    }
-    var grade = r.bhsGrade || '—';
-    var g = document.getElementById('relGrade');
-    g.textContent = 'BHS ' + grade + ' · AAMI SP10 ' + (r.aamiPass ? 'pass' : 'not met');
-    g.style.color = (grade === 'Grade A' || grade === 'Grade B') ? 'var(--green)' : 'var(--ink-400)';
-
-    var rows = [
-      ['Typical error (SBP)', r.maeMmHg  != null ? '\u00b1' + r.maeMmHg.toFixed(1) + ' mmHg' : '—'],
-      ['Within 10 mmHg',      r.pctWithin10 != null ? Math.round(r.pctWithin10) + '% of tests' : '—'],
-      ['Within 5 mmHg',       r.pctWithin5  != null ? Math.round(r.pctWithin5)  + '% of tests' : '—'],
-      ['Two models differ by', r.modelGapMmHg != null ? r.modelGapMmHg.toFixed(1) + ' mmHg' : '—']
-    ];
-    document.getElementById('relRows').innerHTML = rows.map(function(x){
-      return '<div class="r"><span>' + x[0] + '</span><b>' + x[1] + '</b></div>';
-    }).join('');
-  }
-
-  var PATIENT_KEY_CURRENT = null;
+  // Kept because the Latest BP tile and its band tag come from this endpoint;
+  // only the table that displayed the raw model columns is gone.
   function loadPrediction(PATIENT_KEY){
-  PATIENT_KEY_CURRENT = PATIENT_KEY;
   fetch(PULSEIQ_API + '/api/predict/' + PATIENT_KEY)
     .then(function(r){ if(!r.ok) throw new Error('bad status'); return r.json(); })
     .then(function(d){
@@ -1070,31 +1020,16 @@ button{font-family:inherit;cursor:pointer;}
       tag.textContent = band;
       tag.className = 'tag ' + (band === 'Normal' ? 'ok' : (band === 'High' ? 'bad' : 'warn'));
 
-      renderReliability(d);
-
-      document.getElementById('backendSub').innerHTML =
-        'Subject <b>' + d.subjectId + '</b> · window ' + d.windowIndex + ' of ' + d.numWindowsAvailable +
-        ' · <a href="xai-results.html" style="color:var(--cyan-bright);">View explainability →</a>';
-
-      var rows = [
-        ['Target','Classical ML','PPGResNetBiLSTM (DL)','Ground Truth (arterial line)'],
-        ['SBP', d.classical.SBP.toFixed(1), d.dl.SBP.toFixed(1), d.trueLabel.SBP.toFixed(1)],
-        ['DBP', d.classical.DBP.toFixed(1), d.dl.DBP.toFixed(1), d.trueLabel.DBP.toFixed(1)],
-        ['MAP', d.classical.MAP.toFixed(1), d.dl.MAP.toFixed(1), d.trueLabel.MAP.toFixed(1)]
-      ];
-      var html = '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
-      rows.forEach(function(r,i){
-        html += '<tr style="border-bottom:1px solid var(--glass-border);">';
-        r.forEach(function(c){ html += '<td style="padding:8px 6px;' + (i===0? 'color:var(--ink-500);font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;' : 'font-weight:'+(i===0?'700':'600')+';color:'+(i===0?'#fff':'var(--ink-100)')+';') + '">' + c + '</td>'; });
-        html += '</tr>';
-      });
-      html += '</table>';
-      document.getElementById('backendTable').innerHTML = html;
     })
     .catch(function(err){
+      // The card that used to explain an offline backend is gone, so the tile
+      // must not keep showing its markup default — that would be a made-up
+      // reading with nothing on screen saying so. The topbar badge and the
+      // signal card both still report the offline state.
       setBadge(false);
-      document.getElementById('relGrade').textContent = 'Backend offline — metrics unavailable';
-      document.getElementById('backendSub').textContent = 'Backend not reachable at ' + PULSEIQ_API + ' — showing demo values. Start it with: uvicorn main:app --port 8001';
+      document.getElementById('tileBP').innerHTML = '—';
+      var t = document.getElementById('tileBPTag');
+      if(t){ t.textContent = 'No data'; t.className = 'tag'; }
     });
   }
 </script>
