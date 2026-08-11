@@ -288,6 +288,74 @@ button{font-family:inherit;cursor:pointer;}
 .cal-day.on{background:linear-gradient(160deg,rgba(34,229,240,0.16),rgba(34,229,240,0.05));border-color:rgba(34,229,240,0.4);}
 .cal-day.on .num{color:var(--cyan-bright);}
 
+/* ============================================================
+   Phone layout
+   ------------------------------------------------------------
+   The 236px sidebar consumes most of a 390px screen, which left
+   the content clipped and unreachable. Below 900px the rail
+   becomes an off-canvas drawer opened from a button in the
+   topbar, and the main column takes the full width.
+   ============================================================ */
+.rail-burger{display:none;}
+.rail-scrim{display:none;}
+
+@media (max-width:900px){
+  .app{overflow:visible;}
+
+  #rail{position:fixed;top:0;left:0;bottom:0;width:78vw;max-width:300px;z-index:600;
+    transform:translateX(-100%);transition:transform .22s ease;
+    box-shadow:0 0 60px rgba(0,0,0,0.6);overflow-y:auto;}
+  #rail.open{transform:translateX(0);}
+  /* The drawer sits above the page, so the account popover opens downward
+     instead of off the top edge. */
+  #rail .acct-pop{bottom:auto;top:calc(100% + 8px);}
+
+  .rail-scrim{display:block;position:fixed;inset:0;z-index:500;background:rgba(2,4,8,0.6);
+    opacity:0;pointer-events:none;transition:opacity .22s ease;}
+  .rail-scrim.on{opacity:1;pointer-events:auto;}
+
+  .rail-burger{display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    width:38px;height:38px;border-radius:11px;background:var(--glass);
+    border:1px solid var(--glass-border-2);color:var(--ink-100);
+    font-size:17px;line-height:1;cursor:pointer;padding:0;}
+  .rail-burger:active{background:var(--glass-hover);}
+
+  .main{width:100%;}
+  .topbar{height:auto;min-height:56px;padding:10px 14px;gap:10px;flex-wrap:wrap;}
+  .topbar .clock{display:none;}            /* the phone already shows the time */
+  .content{padding:16px 14px 28px;}
+  .card{padding:16px 15px;}
+  .page-head{flex-direction:column;align-items:flex-start;gap:4px;margin-bottom:16px;}
+  .page-head h1{font-size:19px;}
+  .page-head .sub{font-size:12px;}
+
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .stat-tile{padding:13px 14px;}
+  .stat-tile .v{font-size:20px;}
+
+  .qa-grid{grid-template-columns:repeat(2,1fr);gap:11px;}
+  .qa-tile{padding:18px 10px;min-height:124px;}
+
+  /* Tab strips scroll sideways rather than forcing the page to. */
+  .tabs{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tabs .tab{white-space:nowrap;padding:9px 14px;}
+  .subtabs{overflow-x:auto;gap:14px;}
+  .subtabs .stab{white-space:nowrap;}
+
+  /* Only the left half of the status bar carries information worth the space. */
+  .status-bar{font-size:9.5px;padding:0 12px;}
+  .status-bar > span:last-child{display:none;}
+
+  /* Wide tables scroll inside their card instead of stretching the page. */
+  .mono-table{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+}
+
+@media (max-width:420px){
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .qa-tile{min-height:112px;padding:15px 8px;}
+}
+
 </style>
 <style>
   :root{
@@ -313,7 +381,7 @@ button{font-family:inherit;cursor:pointer;}
   .export-btn{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.06);border:1px solid var(--fw-border);color:#fff;font-weight:700;font-size:12.5px;padding:11px 18px;border-radius:11px;}
   .back-link{color:var(--ink-400);font-size:12px;font-weight:700;padding:9px 14px;border-radius:10px;background:var(--glass);border:1px solid var(--fw-border);}
 
-  .finder-body{flex:1;display:flex;min-height:0;}
+  .finder-body{flex:1;display:flex;min-height:0;position:relative;}
   .mapzone{flex:1;position:relative;min-width:0;background:#03050a;}
   #leafletMap{position:absolute;inset:0;background:#03050a;}
 
@@ -434,6 +502,49 @@ button{font-family:inherit;cursor:pointer;}
   .pq-you{width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 0 6px rgba(255,255,255,0.18);}
   .leaflet-popup-content-wrapper{background:#12151d;color:#fff;border-radius:12px;border:1px solid var(--fw-border);}
   .leaflet-popup-tip{background:#12151d;}
+
+  /* ------------------------------------------------------------------
+     Phone. The map keeps the top of the screen, the Map Layers column
+     moves below it in normal flow, and the search panel becomes a
+     bottom sheet you pull up — the pattern every map app uses, because
+     a 314px floating panel covers a 390px map entirely.
+     ------------------------------------------------------------------ */
+  @media(max-width:900px){
+    .finder-app{height:auto;min-height:100dvh;}
+    .finder-top{height:auto;flex-wrap:wrap;padding:10px 12px;gap:8px;}
+    .finder-top .logo{margin-right:0;}
+    .finder-top .logo .mark{width:32px;height:32px;}
+    .finder-top .clock{display:none;}
+    .env-chip{padding:6px 10px;gap:7px;}
+    .env-chip .ic{display:none;}
+    .env-chip .v{font-size:12px;}
+    .export-btn{padding:9px 13px;font-size:11.5px;}
+
+    .finder-body{flex-direction:column;min-height:0;}
+    .mapzone{height:58dvh;flex:none;}
+    .rightpanel{width:100%;border-left:none;border-top:1px solid var(--fw-border);
+      padding:16px 14px 24px;overflow:visible;}
+
+    /* The page scrolls on a phone, so the search panel is a normal card above
+       the map rather than a floating overlay covering it. */
+    .nearby-panel{position:static;width:auto;max-height:none;margin:12px 12px 0;
+      box-shadow:none;}
+    .res-list{max-height:46dvh;}
+    #radiusSlider{height:26px;}
+    .rp-sw{width:48px;height:28px;}
+    .rp-sw::after{width:22px;height:22px;top:3px;left:3px;}
+    .rp-sw.on::after{left:23px;}
+    .rp-row{padding:11px 0;}
+
+    .area-pill{max-width:62vw;}
+    .area-pill #locLabel{max-width:100%;}
+    .legend-chip{display:none;}      /* duplicates the layer dots and costs map height */
+    .chat-fab{right:14px;bottom:14px;width:48px;height:48px;font-size:19px;}
+  }
+
+  @media(max-width:900px){
+    .summary-grid{grid-template-columns:1fr 1fr;}
+  }
 </style>
 </head>
 <body>
@@ -452,20 +563,7 @@ button{font-family:inherit;cursor:pointer;}
   </div>
 
   <div class="finder-body">
-    <div class="mapzone">
-      <div id="leafletMap"></div>
-
-      <button class="float pill-btn mapview-pill" id="btnMapView">📍 <span id="mapViewLbl">Map View</span></button>
-
-      <div class="float pill-btn area-pill">📍 <span id="locLabel">Bhilai, India</span></div>
-
-      <div class="float zoom-ctl">
-        <button id="zIn">+</button>
-        <button id="zOut">−</button>
-        <button id="zFit" title="Zoom out to show every result">⤢</button>
-      </div>
-
-      <div class="float nearby-panel">
+      <div class="float nearby-panel" id="nearbyPanel">
         <h4><span class="pin">📍</span>Find Nearby</h4>
         <div class="np-label">Search Area</div>
         <div class="area-search">
@@ -480,6 +578,19 @@ button{font-family:inherit;cursor:pointer;}
         <div class="res-status" id="resStatus"></div>
         <div class="res-list" id="resList"></div>
       </div>
+    <div class="mapzone">
+      <div id="leafletMap"></div>
+
+      <button class="float pill-btn mapview-pill" id="btnMapView">📍 <span id="mapViewLbl">Map View</span></button>
+
+      <div class="float pill-btn area-pill">📍 <span id="locLabel">Bhilai, India</span></div>
+
+      <div class="float zoom-ctl">
+        <button id="zIn">+</button>
+        <button id="zOut">−</button>
+        <button id="zFit" title="Zoom out to show every result">⤢</button>
+      </div>
+
 
       <div class="float pill-btn legend-chip">
         <span><span class="legend-dot" style="background:var(--map-doctor);">🧑</span>Doctor</span>
