@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>/* Applied before first paint so a light-mode user never sees a dark flash. */
+try{if(localStorage.getItem('pulseiq_theme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}</script>
 <title>PulseIQ — My Vault</title>
 <script>window.PULSEIQ_API_BASE = window.location.origin;</script>
 <link rel="icon" type="image/png" href="data:image/png;base64,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">
@@ -25,8 +27,8 @@
   /* glass */
   --glass:rgba(255,255,255,0.035);
   --glass-hover:rgba(255,255,255,0.065);
-  --glass-strong:rgba(255,255,255,0.06);
-  --glass-border:rgba(255,255,255,0.09);
+  --glass-strong:var(--wash-2);
+  --glass-border:var(--wash-3);
   --glass-border-2:rgba(255,255,255,0.16);
 
   /* primary neon — cyan/teal */
@@ -67,6 +69,22 @@
   --red:#ff5c72;
   --green:#3ce685;
 
+  /* Surfaces that are white-on-dark today and must flip in light mode.
+     Declared here so the dark theme keeps its exact current appearance. */
+  --wash-1:var(--wash-1);
+  --wash-2:var(--wash-2);
+  --wash-3:var(--wash-3);
+  --knob:#ffffff;                 /* toggle knobs, drawn on a coloured track */
+  --panel-solid:var(--panel-solid);          /* opaque popovers and dropdowns */
+  --panel-solid-2:var(--panel-solid-2);
+  --screen:#03050a;               /* monitor / waveform backgrounds */
+  --grid-line:var(--grid-line);
+  --shadow-strong:var(--shadow-strong);
+  --ink-100:#e2e8f0;
+  --ink-300:#a7b2c2;
+  --ink-500:#77839a;
+  --ink-700:#39424f;
+
   --radius-lg:22px; --radius-md:15px; --radius-sm:10px;
   font-family:'Inter',system-ui,-apple-system,sans-serif;
 }
@@ -81,10 +99,10 @@ body{
 }
 a{text-decoration:none;color:inherit;}
 button{font-family:inherit;cursor:pointer;}
-::selection{background:var(--cyan-glow);color:#fff;}
+::selection{background:var(--cyan-glow);color:var(--ink-0);}
 ::-webkit-scrollbar{width:9px;height:9px;}
 ::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:99px;}
+::-webkit-scrollbar-thumb{background:var(--glass-border-2);border-radius:99px;}
 
 .mono{font-family:'JetBrains Mono',monospace;}
 .grad-cyan{background:linear-gradient(90deg,var(--cyan),var(--cyan-bright));-webkit-background-clip:text;background-clip:text;color:transparent;}
@@ -94,10 +112,10 @@ button{font-family:inherit;cursor:pointer;}
 .app{display:flex;height:100vh;background:transparent;position:relative;overflow:hidden;}
 .app::before{
   content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-image:linear-gradient(var(--grid-line) 1px, transparent 1px),linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size:44px 44px;
 }
-#rail{width:236px;background:rgba(8,12,18,0.75);backdrop-filter:blur(18px);border-right:1px solid var(--glass-border);display:flex;flex-direction:column;padding:20px 14px;flex-shrink:0;position:relative;z-index:2;}
+#rail{width:236px;background:color-mix(in srgb, var(--bg-panel) 88%, transparent);backdrop-filter:blur(18px);border-right:1px solid var(--glass-border);display:flex;flex-direction:column;padding:20px 14px;flex-shrink:0;position:relative;z-index:2;}
 #rail .r-logo{display:flex;align-items:center;gap:11px;padding:0 6px;margin-bottom:22px;}
 /* App mark. Defined once here and reused by every logo slot so the brand
    can never drift between pages. */
@@ -107,7 +125,7 @@ button{font-family:inherit;cursor:pointer;}
 #rail .mark{width:36px;height:36px;border-radius:11px;flex-shrink:0;
   background-image:var(--pulse-logo);background-size:cover;background-position:center;
   box-shadow:0 0 18px -4px var(--cyan-glow);}
-#rail .r-logo h2{font-size:14.5px;font-weight:800;color:#fff;margin:0;letter-spacing:-0.01em;}
+#rail .r-logo h2{font-size:14.5px;font-weight:800;color:var(--ink-0);margin:0;letter-spacing:-0.01em;}
 #rail .r-logo h2 span{color:var(--cyan-bright);}
 #rail .r-logo .r-home{font-size:9.5px;color:var(--ink-600);font-weight:700;letter-spacing:0.05em;
   text-transform:uppercase;margin-top:2px;}
@@ -116,66 +134,66 @@ button{font-family:inherit;cursor:pointer;}
 #rail .icon{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border-radius:12px;font-size:13px;font-weight:600;color:var(--ink-400);margin-bottom:3px;text-decoration:none;transition:all .15s;}
 #rail .icon .ic{font-size:16px;width:18px;text-align:center;flex-shrink:0;}
 #rail .icon:hover{background:var(--glass-hover);color:var(--ink-0);}
-#rail .icon.on{background:rgba(34,229,240,0.1);color:#fff;box-shadow:inset 0 0 0 1px rgba(34,229,240,0.3);position:relative;}
+#rail .icon.on{background:rgba(34,229,240,0.1);color:var(--ink-0);box-shadow:inset 0 0 0 1px rgba(34,229,240,0.3);position:relative;}
 #rail .icon.on::before{content:"";position:absolute;left:-14px;top:50%;transform:translateY(-50%);width:3px;height:18px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,var(--cyan-bright),var(--cyan));box-shadow:0 0 8px var(--cyan-glow);}
 #rail .spacer{flex:1;}
 #rail .r-foot{border-top:1px solid var(--glass-border);padding-top:12px;margin-top:6px;}
 #rail .r-acct{position:relative;}
 #rail .r-user{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:11px;
   cursor:pointer;transition:background .14s;}
-#rail .r-user:hover,#rail .r-user.on{background:rgba(255,255,255,0.06);}
+#rail .r-user:hover,#rail .r-user.on{background:var(--wash-2);}
 #rail .r-user .chev{margin-left:auto;color:var(--ink-600);font-size:16px;line-height:1;
   transition:transform .16s;}
 #rail .r-user.on .chev{transform:rotate(90deg);color:var(--cyan-bright);}
 #rail .acct-pop{position:absolute;left:4px;right:4px;bottom:calc(100% + 8px);z-index:300;display:none;
-  background:#0d1219;border:1px solid var(--glass-border-2);border-radius:13px;overflow:hidden;
+  background:var(--panel-solid);border:1px solid var(--glass-border-2);border-radius:13px;overflow:hidden;
   text-decoration:none;box-shadow:0 26px 60px -22px rgba(0,0,0,0.95);}
 #rail .acct-pop.on{display:block;}
 #rail .acct-pop:hover{border-color:rgba(34,229,240,0.35);}
 #rail .ap-head{display:flex;align-items:center;gap:10px;padding:13px 13px 11px;
   border-bottom:1px solid var(--glass-border);}
 #rail .ap-av{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:flex;
-  align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;
+  align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--ink-0);
   background:linear-gradient(135deg,rgba(34,229,240,0.28),rgba(139,92,246,0.28));
-  border:1px solid rgba(255,255,255,0.12);}
-#rail .ap-n{font-size:12.5px;font-weight:800;color:#fff;line-height:1.25;}
+  border:1px solid var(--glass-border-2);}
+#rail .ap-n{font-size:12.5px;font-weight:800;color:var(--ink-0);line-height:1.25;}
 #rail .ap-e{font-size:10px;color:var(--ink-500);margin-top:2px;word-break:break-all;line-height:1.3;}
 #rail .ap-grid{padding:4px 13px 8px;}
 #rail .ap-r{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:7px 0;
-  border-bottom:1px solid rgba(255,255,255,0.05);font-size:10px;}
+  border-bottom:1px solid var(--wash-2);font-size:10px;}
 #rail .ap-r:last-child{border-bottom:none;}
 #rail .ap-r .k{color:var(--ink-600);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;}
 #rail .ap-r .v{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan-bright);
   font-weight:700;text-transform:capitalize;}
 #rail .ap-r .v.none{color:var(--ink-500);}
 #rail .ap-go{padding:10px 13px;font-size:10.5px;font-weight:700;color:var(--ink-500);
-  background:rgba(255,255,255,0.03);border-top:1px solid var(--glass-border);transition:color .13s;}
+  background:var(--wash-1);border-top:1px solid var(--glass-border);transition:color .13s;}
 #rail .acct-pop:hover .ap-go{color:var(--cyan-bright);}
 #rail .avatar{width:34px;height:34px;border-radius:10px;background:var(--glass-strong);border:1px solid var(--glass-border-2);color:var(--ink-200);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-#rail .r-user .nm{font-size:12px;font-weight:700;color:#fff;}
+#rail .r-user .nm{font-size:12px;font-weight:700;color:var(--ink-0);}
 #rail .r-user .rl{font-size:9.5px;color:var(--ink-500);text-transform:capitalize;}
 
 .main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;z-index:1;}
-.topbar{height:60px;background:rgba(8,12,18,0.65);backdrop-filter:blur(18px);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;border-bottom:1px solid var(--glass-border);}
-.brand{display:flex;align-items:center;gap:9px;color:#fff;font-weight:800;font-size:14.5px;letter-spacing:-0.01em;}
+.topbar{height:60px;background:color-mix(in srgb, var(--bg-panel) 82%, transparent);backdrop-filter:blur(18px);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;border-bottom:1px solid var(--glass-border);}
+.brand{display:flex;align-items:center;gap:9px;color:var(--ink-0);font-weight:800;font-size:14.5px;letter-spacing:-0.01em;}
 .brand span{color:var(--cyan-bright);}
 .stat-chip{background:var(--glass);border:1px solid var(--glass-border);border-radius:11px;padding:7px 13px;font-size:11.5px;color:var(--ink-200);font-weight:700;display:flex;align-items:center;gap:7px;}
 .stat-chip small{color:var(--ink-400);font-weight:500;font-size:10px;}
 .topbar .grow{flex:1;}
 .clock{color:var(--ink-400);font-family:'JetBrains Mono',monospace;font-size:12px;margin-right:6px;}
 .topbar-btn{background:linear-gradient(90deg,var(--cyan),var(--cyan-bright));color:var(--cyan-ink);border:none;border-radius:10px;padding:9px 16px;font-weight:800;font-size:12px;box-shadow:0 8px 20px -8px var(--cyan-glow);}
-.topbar-btn.ghost{background:var(--glass);border:1px solid var(--glass-border);color:#fff;box-shadow:none;}
+.topbar-btn.ghost{background:var(--glass);border:1px solid var(--glass-border);color:var(--ink-0);box-shadow:none;}
 
 .content{flex:1;overflow-y:auto;padding:28px 32px;position:relative;z-index:1;}
 .content.no-pad{padding:0;}
 
-.status-bar{height:32px;background:rgba(5,7,11,0.85);backdrop-filter:blur(12px);border-top:1px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:10.5px;color:var(--ink-400);font-family:'JetBrains Mono',monospace;flex-shrink:0;position:relative;z-index:2;}
+.status-bar{height:32px;background:color-mix(in srgb, var(--bg-deep) 92%, transparent);backdrop-filter:blur(12px);border-top:1px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:10.5px;color:var(--ink-400);font-family:'JetBrains Mono',monospace;flex-shrink:0;position:relative;z-index:2;}
 .status-bar b{color:var(--ink-200);}
 .status-bar a{color:var(--cyan-bright);}
 
 /* ---------------- Generic glass components ---------------- */
 .card{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:22px 24px;backdrop-filter:blur(14px);}
-.card h3{margin:0 0 4px;font-size:15px;font-weight:700;color:#fff;}
+.card h3{margin:0 0 4px;font-size:15px;font-weight:700;color:var(--ink-0);}
 .card .card-sub{font-size:12.5px;color:var(--ink-400);margin-bottom:16px;}
 .card.glow-cyan{box-shadow:0 0 0 1px rgba(34,229,240,0.14), 0 30px 60px -30px var(--cyan-glow);}
 .card.glow-purple{box-shadow:0 0 0 1px rgba(180,92,247,0.16), 0 30px 60px -30px var(--purple-glow);}
@@ -193,11 +211,11 @@ button{font-family:inherit;cursor:pointer;}
 .btn:active{transform:scale(0.97);}
 .btn.primary{background:linear-gradient(90deg,var(--cyan),var(--cyan-bright));color:var(--cyan-ink);box-shadow:0 10px 26px -10px var(--cyan-glow);}
 .btn.accent{background:linear-gradient(90deg,var(--purple),var(--purple-bright));color:#160821;box-shadow:0 10px 26px -10px var(--purple-glow);}
-.btn.outline{background:transparent;border:1.5px solid var(--glass-border-2);color:#fff;}
+.btn.outline{background:transparent;border:1.5px solid var(--glass-border-2);color:var(--ink-0);}
 .btn.subtle{background:var(--glass);border:1px solid var(--glass-border);color:var(--ink-200);}
 
 .page-head{display:flex;align-items:baseline;gap:14px;margin-bottom:22px;}
-.page-head h1{font-size:21px;font-weight:800;margin:0;color:#fff;letter-spacing:-0.01em;}
+.page-head h1{font-size:21px;font-weight:800;margin:0;color:var(--ink-0);letter-spacing:-0.01em;}
 .page-head .sub{color:var(--ink-400);font-size:13px;}
 
 /* ---------------- Mono data table (model comparison etc.) ---------------- */
@@ -205,7 +223,7 @@ button{font-family:inherit;cursor:pointer;}
 .mono-table th{text-align:left;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-400);font-weight:700;padding:0 12px 10px;border-bottom:1px solid var(--glass-border);}
 .mono-table td{padding:12px;border-bottom:1px solid var(--glass-border);color:var(--ink-200);}
 .mono-table tr:last-child td{border-bottom:none;}
-.mono-table td.hl{color:#fff;font-weight:700;}
+.mono-table td.hl{color:var(--ink-0);font-weight:700;}
 
 /* ---------------- Circular gauge ---------------- */
 .gauge{position:relative;width:120px;height:120px;flex-shrink:0;}
@@ -215,7 +233,7 @@ button{font-family:inherit;cursor:pointer;}
 .gauge .fill.cyan{stroke:var(--cyan);color:var(--cyan);}
 .gauge .fill.purple{stroke:var(--purple);color:var(--purple);}
 .gauge .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.gauge .center .v{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:22px;color:#fff;}
+.gauge .center .v{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:22px;color:var(--ink-0);}
 .gauge .center .l{font-size:9px;color:var(--ink-400);text-transform:uppercase;letter-spacing:0.05em;margin-top:2px;}
 
 /* ---------------- Neon divider / kicker ---------------- */
@@ -227,7 +245,7 @@ button{font-family:inherit;cursor:pointer;}
 .stat-tile .top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
 .stat-tile .lbl{font-size:10px;font-weight:700;color:var(--ink-400);text-transform:uppercase;letter-spacing:0.04em;}
 .stat-tile .ic{font-size:16px;opacity:0.85;}
-.stat-tile .v{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:24px;color:#fff;}
+.stat-tile .v{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:24px;color:var(--ink-0);}
 .stat-tile .v small{font-size:12px;color:var(--ink-400);font-weight:600;}
 .stat-tile .tag{display:inline-block;margin-top:8px;font-size:9.5px;font-weight:800;padding:3px 9px;border-radius:99px;}
 .stat-tile .tag.ok{background:rgba(60,230,133,0.12);color:var(--green);}
@@ -241,10 +259,10 @@ button{font-family:inherit;cursor:pointer;}
 .tabs .tab.on.purple{background:linear-gradient(90deg,var(--purple),var(--purple-bright));color:#160821;}
 .subtabs{display:flex;gap:18px;border-bottom:1px solid var(--glass-border);margin-bottom:18px;}
 .subtabs .stab{padding:0 0 12px;font-size:12.5px;font-weight:700;color:var(--ink-500);cursor:pointer;border-bottom:2px solid transparent;}
-.subtabs .stab.on{color:#fff;border-color:var(--cyan);}
+.subtabs .stab.on{color:var(--ink-0);border-color:var(--cyan);}
 
 /* ---------------- Progress bar ---------------- */
-.pbar{height:7px;border-radius:99px;background:rgba(255,255,255,0.06);overflow:hidden;}
+.pbar{height:7px;border-radius:99px;background:var(--wash-2);overflow:hidden;}
 .pbar .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--cyan-dim),var(--cyan));}
 
 /* ---------------- Quick action tiles ---------------- */
@@ -261,7 +279,7 @@ button{font-family:inherit;cursor:pointer;}
   border:1px solid rgba(34,229,240,0.20);display:flex;align-items:center;justify-content:center;
   font-size:26px;margin:0 auto 14px;transition:transform .16s;}
 .qa-tile:hover .ic{transform:scale(1.07);}
-.qa-tile .t{font-size:15px;font-weight:800;color:#fff;margin-bottom:4px;letter-spacing:-0.01em;}
+.qa-tile .t{font-size:15px;font-weight:800;color:var(--ink-0);margin-bottom:4px;letter-spacing:-0.01em;}
 .qa-tile .d{font-size:11.5px;color:var(--ink-500);line-height:1.45;}
 
 /* ---------------- Chat history list ---------------- */
@@ -275,14 +293,14 @@ button{font-family:inherit;cursor:pointer;}
 .doc-card{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius-md);padding:16px 17px;}
 .doc-card .top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .doc-card .ic{width:36px;height:36px;border-radius:10px;background:rgba(34,229,240,0.1);display:flex;align-items:center;justify-content:center;font-size:15px;}
-.doc-card .nm{font-size:12.5px;font-weight:700;color:#fff;}
+.doc-card .nm{font-size:12.5px;font-weight:700;color:var(--ink-0);}
 .doc-card .meta{font-size:10.5px;color:var(--ink-500);display:flex;justify-content:space-between;}
 
 /* ---------------- Calendar strip ---------------- */
 .cal-strip{display:flex;gap:8px;margin-bottom:18px;}
 .cal-day{flex:1;text-align:center;background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;padding:10px 4px;}
 .cal-day .dow{font-size:9.5px;color:var(--ink-500);text-transform:uppercase;font-weight:700;}
-.cal-day .num{font-size:15px;font-weight:800;color:#fff;margin-top:4px;}
+.cal-day .num{font-size:15px;font-weight:800;color:var(--ink-0);margin-top:4px;}
 .cal-day.on{background:linear-gradient(160deg,rgba(34,229,240,0.16),rgba(34,229,240,0.05));border-color:rgba(34,229,240,0.4);}
 .cal-day.on .num{color:var(--cyan-bright);}
 
@@ -302,7 +320,7 @@ button{font-family:inherit;cursor:pointer;}
 
   #rail{position:fixed;top:0;left:0;bottom:0;width:78vw;max-width:300px;z-index:600;
     transform:translateX(-100%);transition:transform .22s ease;
-    box-shadow:0 0 60px rgba(0,0,0,0.6);overflow-y:auto;}
+    box-shadow:0 0 60px var(--shadow-strong);overflow-y:auto;}
   #rail.open{transform:translateX(0);}
   /* The drawer sits above the page, so the account popover opens downward
      instead of off the top edge. */
@@ -354,20 +372,267 @@ button{font-family:inherit;cursor:pointer;}
   .qa-tile{min-height:112px;padding:15px 8px;}
 }
 
+
+/* ============================================================
+   Light theme
+   ------------------------------------------------------------
+   Set with <html data-theme="light">. Only the neutral surface
+   and text tokens change: the cyan/purple brand colours and the
+   semantic vitals colours stay put so a reading means the same
+   thing in either theme. The dark values above are the default,
+   so leaving the attribute off keeps today's appearance exactly.
+   ============================================================ */
+[data-theme="light"]{
+  --void:#eef2f7;
+  --bg-deep:#f4f7fb;
+  --bg-panel:#ffffff;
+  --bg-panel-2:#f7f9fc;
+
+  /* "Glass" becomes a light wash over white rather than a white wash
+     over black, otherwise every panel disappears. */
+  --glass:rgba(15,26,42,0.035);
+  --glass-hover:rgba(15,26,42,0.07);
+  --glass-strong:rgba(15,26,42,0.06);
+  --glass-border:rgba(15,26,42,0.12);
+  --glass-border-2:rgba(15,26,42,0.2);
+
+  --wash-1:rgba(15,26,42,0.03);
+  --wash-2:rgba(15,26,42,0.05);
+  --wash-3:rgba(15,26,42,0.08);
+  --knob:#0f1a2a;
+  --panel-solid:#ffffff;
+  --panel-solid-2:#ffffff;
+  --screen:#070d15;               /* stays dark: see the instrument scope below */
+  --grid-line:rgba(15,26,42,0.05);
+  --shadow-strong:rgba(15,26,42,0.16);
+
+  /* Text scale inverted. The neon cyan is too pale on white, so the
+     interactive/accent ink darkens while the brand cyan itself is
+     untouched for logos, glows and chart strokes. */
+  --ink-0:#0d1622;
+  --ink-100:#16202e;
+  --ink-200:#25313f;
+  --ink-300:#3b4757;
+  --ink-400:#4a5668;
+  --ink-500:#5a6678;
+  --ink-600:#6b7788;
+  --ink-700:#9aa4b3;
+  --ink-800:#d4dae3;
+
+  /* The neon ramp is unreadable on white — as a fill behind white text and as
+     text on a white card. Both ends darken; the glow colours keep the original
+     hue so the brand still reads as cyan. */
+  --cyan:#0b8c99;
+  --cyan-bright:#0a7f8b;
+  --cyan-dim:#065f69;
+  --cyan-ink:#ffffff;             /* text drawn on a cyan-filled button */
+  --cyan-glow:rgba(11,140,153,0.5);
+  --cyan-glow-soft:rgba(34,229,240,0.10);
+  --purple:#7b3fb8;
+  --purple-bright:#632f96;
+  --purple-dim:#4a2270;
+  --purple-ink:#ffffff;
+  --purple-glow:rgba(123,63,184,0.5);
+  --purple-glow-soft:rgba(180,92,247,0.09);
+
+  /* Vitals keep their meaning (green good, red high) but darken enough to be
+     legible as text and as chart strokes on a white ground. */
+  --hr:#0f8a52;
+  --spo2:#0a6f9e;
+  --sbp:#c62b45;  --sbp-glow:rgba(198,43,69,0.28);
+  --dbp:#3a52c9;
+  --map-c:#0f7d5c;
+  --rr:#9a6b00;
+  --clinic:#0b8c99; --clinic-stroke:#065f69;
+  --doctor:#4658cc; --doctor-stroke:#2d3a94;
+  --hospital:#c62b45; --hospital-stroke:#8f1f31;
+
+  --amber:#9a6b00;
+  --red:#c62b45;
+  --green:#12855a;
+}
+
+/* Instrument surfaces stay dark in light mode. A pulse oximeter, an ICU
+   monitor and the phone mockup all read as displays rather than as page
+   chrome, and a bright cyan trace on white is genuinely hard to read. The ink
+   and glass scales are re-declared inside them so their own text stays light
+   on dark — variables cascade, so every descendant follows. */
+[data-theme="light"] .phone-screen,
+[data-theme="light"] .signal-wave,
+[data-theme="light"] .monitor-panel,
+[data-theme="light"] .phone-trace{
+  --ink-0:#f3f6fa; --ink-100:#e2e8f0; --ink-200:#c7d0dc; --ink-300:#a7b2c2;
+  --ink-400:#8b96a8; --ink-500:#77839a; --ink-600:#5b6576; --ink-700:#39424f;
+  --glass:rgba(255,255,255,0.04);
+  --glass-hover:rgba(255,255,255,0.07);
+  --glass-border:rgba(255,255,255,0.10);
+  --glass-border-2:rgba(255,255,255,0.18);
+  --wash-1:rgba(255,255,255,0.03);
+  --wash-2:rgba(255,255,255,0.05);
+  --wash-3:rgba(255,255,255,0.08);
+  --cyan:#22e5f0; --cyan-bright:#7bf5fb; --cyan-dim:#0e6e78; --cyan-ink:#031a1c;
+  --hr:#3ce685; --spo2:#35c7ff; --sbp:#ff6b6b; --dbp:#8aa8ff; --map-c:#5fe3a6; --rr:#ffd166;
+  --green:#3ce685; --red:#ff5c72; --amber:#ffc857;
+  color:var(--ink-0);
+}
+
+/* Theme toggle. Sits last in whichever header a page has, so it lands at the
+   top right on every screen including the ones with a bespoke header. */
+.theme-btn{display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  width:36px;height:36px;border-radius:11px;cursor:pointer;padding:0;
+  background:var(--glass);border:1px solid var(--glass-border-2);color:var(--ink-200);
+  transition:color .15s,background .15s;}
+.theme-btn:hover{color:var(--ink-0);background:var(--glass-hover);}
+.theme-btn svg{display:block;}
+/* The landing page and login have no flex "grow" spacer before it. */
+.nav .theme-btn,.stage .theme-btn{margin-left:12px;}
+/* Login centres a max-width stage, so anchoring to it lands the button well
+   short of the corner. Pin it to the viewport instead. */
+.stage .theme-btn{position:fixed;top:16px;right:16px;margin:0;z-index:20;}
+@media (max-width:900px){ .theme-btn{width:38px;height:38px;} }
+
+/* ============================================================
+   Press feedback and light-mode depth
+   ------------------------------------------------------------
+   Dark mode read as premium because everything sat on a glow.
+   On white there is no glow to sit on, so depth comes from a
+   soft shadow instead — and every control now visibly responds
+   to being pressed, which it previously did not.
+   ============================================================ */
+button,.btn,.qa-tile,.cal-day,.tab,.slot,.icon,.mini-btn,.topbar-btn,
+.theme-btn,.rail-burger,.contact,.res-item,.stat-chip{
+  transition:transform .09s ease, box-shadow .16s ease, background .16s ease,
+             border-color .16s ease, filter .16s ease;
+}
+button:active,.btn:active,.mini-btn:active,.topbar-btn:active,
+.theme-btn:active,.rail-burger:active,.tab:active,.slot:active,.cal-day:active{
+  transform:translateY(1px) scale(0.985);
+  filter:brightness(0.94);
+}
+.qa-tile:active{transform:translateY(-1px) scale(0.99);}
+/* Keyboard users get the same affordance as the mouse. */
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,
+textarea:focus-visible,.qa-tile:focus-visible,.tab:focus-visible{
+  outline:2px solid var(--cyan);outline-offset:2px;
+}
+
+[data-theme="light"]{
+  /* Elevation replaces the dark theme's glow as the depth cue. */
+  --shadow-card:0 1px 2px rgba(15,26,42,0.05), 0 10px 28px -14px rgba(15,26,42,0.18);
+  --shadow-raised:0 2px 6px rgba(15,26,42,0.07), 0 18px 40px -18px rgba(15,26,42,0.24);
+}
+[data-theme="light"] .card,
+[data-theme="light"] .qa-tile,
+[data-theme="light"] .stat-tile{box-shadow:var(--shadow-card);}
+[data-theme="light"] .qa-tile:hover{box-shadow:var(--shadow-raised);
+  border-color:rgba(11,140,153,0.4);}
+[data-theme="light"] #rail{box-shadow:1px 0 0 rgba(15,26,42,0.06);}
+[data-theme="light"] .topbar{box-shadow:0 1px 0 rgba(15,26,42,0.06);}
+/* Filled buttons keep a coloured lift so they still read as the primary action. */
+[data-theme="light"] .btn.primary,
+[data-theme="light"] .topbar-btn,
+[data-theme="light"] .submit-btn,
+[data-theme="light"] .upload-btn,
+[data-theme="light"] .find-btn,
+[data-theme="light"] .composer button{box-shadow:0 8px 20px -10px var(--cyan-glow);}
+[data-theme="light"] .btn.primary:hover,
+[data-theme="light"] .submit-btn:hover,
+[data-theme="light"] .upload-btn:hover,
+[data-theme="light"] .find-btn:hover{box-shadow:0 12px 26px -10px var(--cyan-glow);
+  filter:brightness(1.06);}
+/* Secondary/outline buttons had no hover at all on white. */
+[data-theme="light"] .clear-btn:hover,
+[data-theme="light"] .icu-btn:hover,
+[data-theme="light"] .export-btn:hover,
+[data-theme="light"] .mini-btn:hover,
+[data-theme="light"] .theme-btn:hover{background:var(--glass-hover);
+  border-color:rgba(11,140,153,0.45);color:var(--ink-0);}
+
+/* The gauge's CSS drop-shadow rasterised as a pale square behind the ring on a
+   light card. The ring reads cleanly without it; dark mode keeps its glow. */
+[data-theme="light"] .gauge .fill{filter:none;}
+
+/* ============================================================
+   Rounded surfaces respond to the pointer
+   ------------------------------------------------------------
+   Every boxed section — cards, tiles, chips, pills, list rows —
+   now lifts on hover and presses in on click, so it is obvious
+   what is interactive and where the pointer is. The accent is a
+   variable so the map screen can glow in its own violet rather
+   than the app cyan.
+   ============================================================ */
+:root{
+  --glow-ring:rgba(34,229,240,0.42);
+  --glow-cast:rgba(34,229,240,0.30);
+}
+[data-theme="light"]{
+  --glow-ring:rgba(11,140,153,0.45);
+  --glow-cast:rgba(11,140,153,0.26);
+}
+
+.card,.qa-tile,.stat-tile,.stat-chip,.next-med,.doc-card,.med-item,.set-row,
+.summary-tile,.route-box,.env-chip,.pill-btn,.res-item,.radius-guide-row,
+.contact,.rp-row,.adh-wrap,.signin-note,.vt,.back,
+.cal-day,.tab,.slot,.clear-btn,.icu-btn,.export-btn,.mini-btn,.auth-tab,.role-btn,
+.real-note,.research-note,.trend-panel,.mag-step,.roster,.search-box,
+.login-card,.feat,.phone-tile,.guest-link,.hero-badges .b,.cta,
+.hero-btns .primary,.hero-btns .ghost,.find-btn,#rail .icon,.bubble,.role-pick .rp{
+  transition:box-shadow .18s ease,border-color .18s ease,
+             transform .12s ease,background .18s ease;
+}
+.card:hover,.qa-tile:hover,.stat-tile:hover,.stat-chip:hover,.next-med:hover,
+.doc-card:hover,.med-item:hover,.set-row:hover,.summary-tile:hover,
+.route-box:hover,.env-chip:hover,.pill-btn:hover,.res-item:hover,
+.radius-guide-row:hover,.contact:hover,.rp-row:hover,
+.cal-day:hover,.tab:hover,.slot:hover,.clear-btn:hover,.icu-btn:hover,
+.export-btn:hover,.mini-btn:hover,.auth-tab:hover,.role-btn:hover,
+.vt:hover,.back:hover,.signin-note:hover,.adh-wrap:hover,
+.real-note:hover,.research-note:hover,.trend-panel:hover,.mag-step:hover,
+.roster:hover,.search-box:hover,.login-card:hover,.feat:hover,
+.phone-tile:hover,.guest-link:hover,.hero-badges .b:hover,.cta:hover,
+.hero-btns .primary:hover,.hero-btns .ghost:hover,#rail .icon:hover,
+.bubble:hover,.role-pick .rp:hover,.find-btn:hover{
+  border-color:var(--glow-ring);
+  box-shadow:0 0 0 1px var(--glow-ring), 0 14px 34px -18px var(--glow-cast);
+}
+/* Pressing in reads as the surface sinking rather than lifting. */
+.card:active,.qa-tile:active,.stat-tile:active,.stat-chip:active,.next-med:active,
+.doc-card:active,.med-item:active,.summary-tile:active,.env-chip:active,
+.pill-btn:active,.res-item:active,.contact:active,
+.cal-day:active,.tab:active,.slot:active,.clear-btn:active,.icu-btn:active,
+.export-btn:active,.mini-btn:active,.auth-tab:active,.role-btn:active,
+.vt:active,.back:active,.mag-step:active,.feat:active,.phone-tile:active,
+.guest-link:active,.cta:active,.hero-btns .primary:active,
+.hero-btns .ghost:active,#rail .icon:active,.role-pick .rp:active{
+  transform:translateY(1px) scale(0.995);
+  box-shadow:0 0 0 1px var(--glow-ring), 0 6px 16px -12px var(--glow-cast);
+}
+/* Rows that have no border of their own get the ring only. */
+.rp-row:hover,.radius-guide-row:hover,.set-row:hover{
+  border-radius:10px;
+  box-shadow:0 0 0 1px var(--glow-ring);
+}
+
+/* Deliberately excluded from the hover set: instrument displays
+   (.monitor-panel, .signal-wave, .phone-screen, .phone-trace) are readouts, not
+   controls; .badge, .live-pill and .av are status indicators — glowing them
+   would suggest they can be clicked. Strip containers (.tabs, .auth-tabs) stay
+   flat because their child tabs already respond. */
+
 </style>
 <style>
   .vault-top{display:flex;gap:12px;margin-bottom:18px;}
   .search-box{flex:1;background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;}
-  .search-box input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-family:'Inter';font-size:13px;}
+  .search-box input{flex:1;background:transparent;border:none;outline:none;color:var(--ink-0);font-family:'Inter';font-size:13px;}
   .upload-btn{background:linear-gradient(90deg,var(--cyan),var(--cyan-bright));color:var(--cyan-ink);border:none;border-radius:12px;padding:0 22px;font-weight:800;font-size:12.5px;cursor:pointer;}
   .upload-btn:disabled{opacity:.5;cursor:default;}
   .doc-card{position:relative;}
-  .doc-card .tag{display:inline-block;margin-top:8px;font-size:9.5px;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(255,255,255,0.05);border:1px solid var(--glass-border-2);color:var(--ink-300);}
+  .doc-card .tag{display:inline-block;margin-top:8px;font-size:9.5px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--wash-2);border:1px solid var(--glass-border-2);color:var(--ink-300);}
   .doc-actions{position:absolute;top:12px;right:12px;display:flex;gap:5px;opacity:0;transition:opacity .12s;}
   .doc-card:hover .doc-actions{opacity:1;}
-  .doc-actions button{background:rgba(255,255,255,0.06);border:1px solid var(--glass-border-2);color:var(--ink-200);
+  .doc-actions button{background:var(--wash-2);border:1px solid var(--glass-border-2);color:var(--ink-200);
     font-size:11px;padding:4px 8px;border-radius:7px;cursor:pointer;}
-  .doc-actions button:hover{color:#fff;}
+  .doc-actions button:hover{color:var(--ink-0);}
   .doc-actions button.del:hover{background:rgba(255,92,114,0.18);color:var(--red);border-color:rgba(255,92,114,0.4);}
   .empty{text-align:center;padding:46px 24px;color:var(--ink-500);font-size:12.5px;line-height:1.7;}
   .empty .ic{font-size:34px;margin-bottom:10px;}
@@ -375,9 +640,9 @@ button{font-family:inherit;cursor:pointer;}
   .up-note.err{display:block;background:rgba(255,92,114,0.1);border:1px solid rgba(255,92,114,0.35);color:#ffb3bd;}
   .up-note.ok{display:block;background:rgba(60,230,133,0.1);border:1px solid rgba(60,230,133,0.35);color:var(--green);}
   .cat-pick{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
-  .cat-pick select{background:rgba(255,255,255,0.04);border:1px solid var(--glass-border-2);color:#fff;
+  .cat-pick select{background:var(--wash-1);border:1px solid var(--glass-border-2);color:var(--ink-0);
     font-family:'Inter';font-size:12px;font-weight:700;padding:9px 12px;border-radius:10px;outline:none;cursor:pointer;}
-  .cat-pick select option{background:#0a0e14;color:#fff;}
+  .cat-pick select option{background:var(--panel-solid);color:var(--ink-0);}
   .cat-pick label{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-600);font-weight:700;}
 
   /* Phone. The filter tabs scroll instead of stretching the page. */
@@ -571,6 +836,69 @@ button{font-family:inherit;cursor:pointer;}
         localStorage.removeItem('pulseiq_token');
       });
     }
+  }
+
+  // ---- Theme -------------------------------------------------------------
+  // The choice is applied by a tiny inline script in each page's <head> so the
+  // first paint is already correct; this only handles switching afterwards.
+  var THEME_KEY = 'pulseiq_theme';
+
+  function currentTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  }
+
+  function applyTheme(mode) {
+    if (mode === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    else document.documentElement.removeAttribute('data-theme');
+    try { localStorage.setItem(THEME_KEY, mode); } catch (e) {}
+    // Tell the address bar / status bar to match, so the phone chrome doesn't
+    // stay black around a white page.
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'theme-color');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', mode === 'light' ? '#eef2f7' : '#04060a');
+    document.querySelectorAll('[data-theme-btn]').forEach(function (b) {
+      b.innerHTML = mode === 'light' ? SUN : MOON;
+      b.setAttribute('aria-label', mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+      b.setAttribute('title', mode === 'light' ? 'Dark mode' : 'Light mode');
+    });
+  }
+
+  // Inline SVG rather than an emoji: emoji render in colour and at wildly
+  // different sizes per platform, which looked wrong next to the other icons.
+  var MOON = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+  var SUN  = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2M12 19.4v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2.6 12h2M19.4 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>';
+
+  // Every page has a different header element, so the button is placed in
+  // whichever one exists rather than being duplicated into 13 files.
+  function mountThemeToggle() {
+    if (document.querySelector('[data-theme-btn]')) return;
+    var host = document.querySelector('.topbar')      // app shell pages
+            || document.querySelector('.finder-top')  // map
+            || document.querySelector('.icu-top')     // monitor
+            || document.querySelector('.nav')         // landing
+            || document.querySelector('.stage');      // login
+    if (!host) return;
+
+    var btn = document.createElement('button');
+    btn.className = 'theme-btn';
+    btn.setAttribute('data-theme-btn', '1');
+    btn.setAttribute('type', 'button');
+    btn.addEventListener('click', function () {
+      applyTheme(currentTheme() === 'light' ? 'dark' : 'light');
+    });
+    host.appendChild(btn);           // last child = top right of every header
+    applyTheme(currentTheme());
+  }
+
+  // On the pages with no shell, renderRail() never runs, so mount directly.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mountThemeToggle);
+  } else {
+    mountThemeToggle();
   }
 
   // On a phone the rail is an off-canvas drawer. The button lives in the page's
