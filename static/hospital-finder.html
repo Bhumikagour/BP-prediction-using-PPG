@@ -29,8 +29,8 @@ try{if(localStorage.getItem('pulseiq_theme')==='light')document.documentElement.
   /* glass */
   --glass:rgba(255,255,255,0.035);
   --glass-hover:rgba(255,255,255,0.065);
-  --glass-strong:var(--wash-2);
-  --glass-border:var(--wash-3);
+  --glass-strong:rgba(255,255,255,0.06);
+  --glass-border:rgba(255,255,255,0.09);
   --glass-border-2:rgba(255,255,255,0.16);
 
   /* primary neon — cyan/teal */
@@ -73,15 +73,15 @@ try{if(localStorage.getItem('pulseiq_theme')==='light')document.documentElement.
 
   /* Surfaces that are white-on-dark today and must flip in light mode.
      Declared here so the dark theme keeps its exact current appearance. */
-  --wash-1:var(--wash-1);
-  --wash-2:var(--wash-2);
-  --wash-3:var(--wash-3);
+  --wash-1:rgba(255,255,255,0.03);
+  --wash-2:rgba(255,255,255,0.05);
+  --wash-3:rgba(255,255,255,0.08);
   --knob:#ffffff;                 /* toggle knobs, drawn on a coloured track */
-  --panel-solid:var(--panel-solid);          /* opaque popovers and dropdowns */
-  --panel-solid-2:var(--panel-solid-2);
+  --panel-solid:#0d1219;          /* opaque popovers and dropdowns */
+  --panel-solid-2:#131c26;
   --screen:#03050a;               /* monitor / waveform backgrounds */
-  --grid-line:var(--grid-line);
-  --shadow-strong:var(--shadow-strong);
+  --grid-line:rgba(255,255,255,0.018);
+  --shadow-strong:rgba(0,0,0,0.6);
   --ink-100:#e2e8f0;
   --ink-300:#a7b2c2;
   --ink-500:#77839a;
@@ -91,12 +91,18 @@ try{if(localStorage.getItem('pulseiq_theme')==='light')document.documentElement.
   font-family:'Inter',system-ui,-apple-system,sans-serif;
 }
 *{box-sizing:border-box;}
-html,body{height:100%;margin:0;}
+html{height:100%;margin:0;}
+/* min-height, not height: with height:100% the body box stopped at one viewport
+   while the page kept scrolling, so the background gradient tiled and drew a
+   hard horizontal seam across the page at exactly the fold. */
 body{
+  min-height:100%;margin:0;
   background:
     radial-gradient(circle at 12% 8%, var(--cyan-glow-soft) 0%, transparent 32%),
     radial-gradient(circle at 88% 92%, var(--purple-glow-soft) 0%, transparent 34%),
     var(--void);
+  background-repeat:no-repeat;
+  background-attachment:fixed;
   color:var(--ink-0);
 }
 a{text-decoration:none;color:inherit;}
